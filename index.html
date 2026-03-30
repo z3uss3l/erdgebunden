@@ -14,29 +14,102 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
         
-        :root { --color-forest: #064e3b; --color-earth: #9a3412; --color-sand: #faf6f0; }
+        :root { 
+            --color-forest: #064e3b; 
+            --color-earth: #9a3412;  
+            --color-sand: #faf6f0;   
+        }
         
-        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--color-sand); color: #1f2937; overflow-x: hidden; }
-        h1, h2, h3, h4, .heading { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em; }
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background-color: var(--color-sand);
+            color: #1f2937;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, .heading { 
+            font-family: 'Space Grotesk', sans-serif; 
+            letter-spacing: -0.03em; 
+        }
 
-        .glass-nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(6,78,59,0.05); }
-        .card-premium { background: #ffffff; transition: all 0.5s cubic-bezier(0.16,1,0.3,1); border: 1px solid rgba(0,0,0,0.03); }
-        .card-premium:hover { transform: translateY(-5px); box-shadow: 0 25px 50px -12px rgba(6,78,59,0.12); }
+        /* --- UI Effects & Layout --- */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(6, 78, 59, 0.05);
+        }
 
-        .glow-btn { position: relative; overflow: hidden; transition: all 0.3s ease; }
-        .glow-btn::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); transform:skewX(-20deg); transition:left 0.7s ease; }
-        .glow-btn:hover::after { left:150%; }
+        .card-premium {
+            background: #ffffff;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .card-premium:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.12); 
+        }
 
-        .accordion-content { transition: max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease; max-height:0; opacity:0; overflow:hidden; }
-        .accordion-content.open { opacity:1; }
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .glow-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.7s ease;
+        }
+        .glow-btn:hover::after { left: 150%; }
+        .glow-shadow { box-shadow: 0 0 20px rgba(6, 78, 59, 0.3); }
 
-        .reveal { opacity:0; transform:translateY(40px); transition:all 0.9s cubic-bezier(0.16,1,0.3,1); }
-        .reveal.active { opacity:1; transform:translateY(0); }
-        .reveal-zoom { opacity:0; transform:scale(0.95) translateY(20px); transition:all 0.8s cubic-bezier(0.16,1,0.3,1); }
-        .reveal-zoom.active { opacity:1; transform:scale(1) translateY(0); }
+        .accordion-content { 
+            transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; 
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden; 
+        }
+        .accordion-content.open { opacity: 1; }
 
-        /* Logo */
-        svg.logo-svg { filter: drop-shadow(0 4px 12px rgba(6,78,59,0.3)); }
+        /* --- Scroll Animations --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .reveal-zoom {
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-zoom.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+        .delay-400 { transition-delay: 400ms; }
+        
+        /* Progress Bar Animation */
+        .progress-bar-fill {
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active .progress-bar-fill { width: var(--target-width); }
+
+        /* --- SVG Logo Animation --- */
+        svg.logo-svg { filter: drop-shadow(0 4px 12px rgba(6, 78, 59, 0.3)); }
         .path {
             stroke: #064e3b;
             stroke-width: 2.5;
@@ -84,7 +157,14 @@
             </div>
         </div>
 
-        <div x-show="mobileMenu" x-transition class="xl:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md border-b shadow-xl px-6 py-6 flex flex-col gap-4 text-lg font-medium max-h-[80vh] overflow-y-auto">
+        <div x-show="mobileMenu" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
+             class="xl:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md border-b shadow-xl px-6 py-6 flex flex-col gap-4 text-lg font-medium max-h-[80vh] overflow-y-auto">
             <a href="#vision" @click="mobileMenu=false" class="flex items-center gap-3"><i class="fa-solid fa-eye text-[#064e3b] w-6"></i> Vision</a>
             <a href="#permakultur" @click="mobileMenu=false" class="flex items-center gap-3"><i class="fa-solid fa-leaf text-[#064e3b] w-6"></i> Permakultur</a>
             <a href="#regenerativ" @click="mobileMenu=false" class="flex items-center gap-3"><i class="fa-solid fa-seedling text-[#064e3b] w-6"></i> Regenerative Landwirtschaft</a>
@@ -96,15 +176,500 @@
         </div>
     </nav>
 
-    <!-- Rest der Seite (komplett unverändert ab hier) -->
-    <section id="vision" class="pt-36 pb-20 px-6"> ... (genau wie in deiner letzten Version) ... </section>
-    <!-- Alle weiteren Sections (permakultur bis footer) sind 1:1 identisch mit der vorherigen vollständigen Datei – ich habe nichts gekürzt. -->
+    <section id="vision" class="pt-36 pb-20 px-6">
+        <div class="max-w-[1440px] mx-auto text-center mt-8 reveal">
+            <span class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-[#064e3b]/10 text-[#064e3b] text-sm font-semibold tracking-wide mb-8 shadow-sm">
+                <i class="fa-solid fa-earth-europe"></i> Erdgebunden
+            </span>
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-white rounded-3xl p-10 card-premium text-left reveal-zoom delay-100 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="w-14 h-14 bg-[#faf6f0] rounded-2xl flex items-center justify-center mb-6 text-2xl text-[#9a3412]">🌌</div>
+                        <h2 class="heading text-3xl lg:text-4xl text-[#064e3b] leading-tight">Tiefe<br>Erdverbindung<br>&amp; Sinnstiftung.</h2>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl p-10 card-premium text-left reveal-zoom delay-200 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="w-14 h-14 bg-[#faf6f0] rounded-2xl flex items-center justify-center mb-6 text-2xl text-[#9a3412]">📈</div>
+                        <h2 class="heading text-3xl lg:text-4xl text-[#064e3b] leading-tight">Messbare<br>Regeneration<br>&amp; Kohlenstoff-<br>speicherung.</h2>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl p-10 card-premium text-left reveal-zoom delay-300 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="w-14 h-14 bg-[#faf6f0] rounded-2xl flex items-center justify-center mb-6 text-2xl text-[#9a3412]">🤝</div>
+                        <h2 class="heading text-3xl lg:text-4xl text-[#064e3b] leading-tight">Achtsame<br>Resilienz<br>&amp; Kooperatives<br>Handeln.</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="permakultur" class="py-24 bg-white px-6">
+        <div class="max-w-[1440px] mx-auto text-center reveal">
+            <h1 class="heading text-4xl md:text-6xl lg:text-7xl font-bold text-[#1f2937] leading-tight mb-6">Was ist Permakultur?</h1>
+            <p class="text-xl md:text-2xl text-[#1f2937] font-medium mb-8">Ein ganzheitliches Design-System zur Gestaltung nachhaltiger Lebensräume.</p>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 leading-relaxed">
+                Entstanden in den 1970er Jahren durch Bill Mollison und David Holmgren. Ziel sind dauerhafte, abfallfreie und selbstregulierende Systeme – basierend auf wissenschaftlichen Prinzipien der Ökologie, Systemtheorie und einem tiefen Respekt vor dem Leben.
+            </p>
+        </div>
+    </section>
+
+    <section id="regenerativ" class="py-24 px-6 max-w-[1440px] mx-auto">
+        <div class="text-center mb-16 reveal">
+            <span class="uppercase text-[#9a3412] text-sm font-semibold tracking-widest flex items-center justify-center gap-2"><i class="fa-solid fa-microscope"></i> Praxis &amp; Wissenschaft</span>
+            <h2 class="heading text-4xl md:text-5xl font-bold text-[#064e3b] mt-4">Regenerative Landwirtschaft</h2>
+        </div>
+
+        <div class="max-w-4xl mx-auto space-y-4">
+            <div class="card-premium rounded-3xl overflow-hidden bg-white reveal delay-100">
+                <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 md:p-8 text-left focus:outline-none group">
+                    <span class="text-xl md:text-2xl font-bold text-[#064e3b] pr-4 break-words">Beispiele regenerativer Praktiken</span>
+                    <div class="w-10 h-10 rounded-full bg-[#faf6f0] flex items-center justify-center flex-shrink-0 group-hover:bg-[#064e3b] group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-plus text-[#9a3412] group-hover:text-white transition-transform duration-300"></i>
+                    </div>
+                </button>
+                <div class="accordion-content px-6 md:px-8 pb-8 text-gray-600">
+                    <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-6 pt-4 border-t border-gray-100">
+                        <li class="flex gap-4 items-start"><span class="text-2xl mt-1">🌱</span><div><strong class="text-[#064e3b] block">No-Till / Direktsaat</strong><span class="text-sm">Bodenmikroben und Kohlenstoff bleiben erhalten.</span></div></li>
+                        <li class="flex gap-4 items-start"><span class="text-2xl mt-1">🌾</span><div><strong class="text-[#064e3b] block">Permanente Bodenbedeckung</strong><span class="text-sm">Mulch, Cover Crops – lebendige Decke.</span></div></li>
+                        <li class="flex gap-4 items-start"><span class="text-2xl mt-1">🌳</span><div><strong class="text-[#064e3b] block">Agroforstwirtschaft</strong><span class="text-sm">Bäume + Weide + Acker in Symbiose.</span></div></li>
+                        <li class="flex gap-4 items-start"><span class="text-2xl mt-1">🐄</span><div><strong class="text-[#064e3b] block">Mob Grazing / Rotationsweide</strong><span class="text-sm">Kurze intensive Beweidung, lange Regeneration.</span></div></li>
+                        <li class="flex gap-4 items-start sm:col-span-2"><span class="text-2xl mt-1">🪱</span><div><strong class="text-[#064e3b] block">Komposttee &amp; Biodiversität</strong><span class="text-sm">Mikrobielles Bodenleben aktiv stärken.</span></div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card-premium rounded-3xl overflow-hidden bg-white reveal delay-200">
+                <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 md:p-8 text-left focus:outline-none group">
+                    <span class="text-xl md:text-2xl font-bold text-[#064e3b] pr-4 break-words">Abgrenzung zu Ökolandbau &amp; Konventionell</span>
+                    <div class="w-10 h-10 rounded-full bg-[#faf6f0] flex items-center justify-center flex-shrink-0 group-hover:bg-[#064e3b] group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-plus text-[#9a3412] group-hover:text-white transition-transform duration-300"></i>
+                    </div>
+                </button>
+                <div class="accordion-content px-6 md:px-8 pb-8 overflow-x-auto">
+                    <table class="w-full text-left text-sm mt-4 min-w-[600px]">
+                        <thead><tr class="border-b border-gray-200"><th class="pb-4 pt-4 text-[#064e3b]">Aspekt</th><th class="pb-4 pt-4 text-gray-500">Konventionell</th><th class="pb-4 pt-4 text-gray-500">Ökolandbau</th><th class="pb-4 pt-4 text-[#9a3412]">Regenerativ</th></tr></thead>
+                        <tbody>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors"><td class="py-4 px-2 font-bold text-[#064e3b]">Bodenbearbeitung</td><td class="py-4">Intensives Pflügen</td><td class="py-4">Erlaubt</td><td class="py-4 font-medium"><i class="fa-solid fa-check text-green-600 mr-1"></i> No-Till – aktiv vermieden</td></tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors"><td class="py-4 px-2 font-bold text-[#064e3b]">Ziel</td><td class="py-4">Kurzfristige Erträge</td><td class="py-4">Erhalt</td><td class="py-4 font-medium"><i class="fa-solid fa-check text-green-600 mr-1"></i> Aktive Regeneration + CO₂-Bindung</td></tr>
+                            <tr class="hover:bg-gray-50 transition-colors"><td class="py-4 px-2 font-bold text-[#064e3b]">CO₂-Bilanz</td><td class="py-4 text-red-500">Stark negativ</td><td class="py-4">Neutral</td><td class="py-4 font-bold text-[#064e3b]"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Stark positiv (0,5–5 t/ha/Jahr)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-premium rounded-3xl overflow-hidden bg-white reveal delay-300">
+                <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 md:p-8 text-left focus:outline-none group">
+                    <span class="text-xl md:text-2xl font-bold text-[#064e3b] pr-4 break-words">Kohlenstoffspeicherung (Messeffekte)</span>
+                    <div class="w-10 h-10 rounded-full bg-[#faf6f0] flex items-center justify-center flex-shrink-0 group-hover:bg-[#064e3b] group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-plus text-[#9a3412] group-hover:text-white transition-transform duration-300"></i>
+                    </div>
+                </button>
+                <div class="accordion-content px-6 md:px-8 pb-8 text-gray-600">
+                    <div class="pt-4 border-t border-gray-100">
+                        <p class="mb-8 leading-relaxed">Regenerative Methoden binden aktiv atmosphärisches CO₂ im Boden. Wissenschaftlich belegt sind enorme Steigerungen gegenüber konventionellen Methoden.</p>
+                        
+                        <div class="bg-[#faf6f0] p-6 rounded-2xl mb-8 border border-gray-200 shadow-inner">
+                            <h4 class="font-bold text-[#064e3b] mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-bar"></i> Potenzialvergleich (Bodenkohlenstoff)</h4>
+                            
+                            <div class="mb-4">
+                                <div class="flex justify-between text-xs font-semibold mb-1 text-gray-500 uppercase"><span>Konventionell</span><span>Neutral / Verlust</span></div>
+                                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                    <div class="bg-gray-400 h-3 rounded-full progress-bar-fill" style="--target-width: 15%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex justify-between text-xs font-semibold mb-1 text-gray-500 uppercase"><span>Ökolandbau</span><span>Leichter Zuwachs / Erhalt</span></div>
+                                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                    <div class="bg-[#854d0e] h-3 rounded-full progress-bar-fill" style="--target-width: 40%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs font-bold mb-1 text-[#064e3b] uppercase"><span>Regenerativ</span><span>Bis zu 5t CO₂/ha/Jahr</span></div>
+                                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                                    <div class="bg-[#064e3b] h-3 rounded-full relative progress-bar-fill glow-shadow" style="--target-width: 95%">
+                                        <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-white opacity-30 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div><strong class="text-[#064e3b] flex items-center gap-2 mb-3"><i class="fa-solid fa-cogs"></i> Wie es funktioniert</strong>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-[#9a3412] mt-1"></i> <span>Fotosynthese + permanente Bodenbedeckung → Kohlenstoff in Wurzeln und Humus</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-[#9a3412] mt-1"></i> <span>No-Till verhindert Freisetzung gespeicherten Kohlenstoffs</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-[#9a3412] mt-1"></i> <span>Mikroben und Pilze transportieren Kohlenstoff tief in den Boden</span></li>
+                                </ul>
+                            </div>
+                            <div><strong class="text-[#064e3b] flex items-center gap-2 mb-3"><i class="fa-solid fa-trophy"></i> Erfolgsbeispiele</strong>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-green-600 mt-1"></i> <span><strong>Gabe Brown’s Ranch (USA)</strong><br>+300 % Bodenkohlenstoff in 20 Jahren</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-green-600 mt-1"></i> <span><strong>Rodale Institute</strong><br>40-jährige Studie: 2–4 t CO₂/ha/Jahr mehr als konventionell</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-green-600 mt-1"></i> <span><strong>Hofgut Oberfeld</strong><br>Nachweisbare Kohlenstoffzunahme lokal</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-premium rounded-3xl overflow-hidden bg-white reveal delay-400">
+                <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 md:p-8 text-left focus:outline-none group">
+                    <span class="text-xl md:text-2xl font-bold text-[#064e3b] pr-4 break-words">Biodiversitätsförderung</span>
+                    <div class="w-10 h-10 rounded-full bg-[#faf6f0] flex items-center justify-center flex-shrink-0 group-hover:bg-[#064e3b] group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-plus text-[#9a3412] group-hover:text-white transition-transform duration-300"></i>
+                    </div>
+                </button>
+                <div class="accordion-content px-6 md:px-8 pb-8 text-gray-600">
+                    <div class="pt-4 border-t border-gray-100">
+                        <p class="mb-6 leading-relaxed">Vielfalt = Resilienz. Permakultur maximiert Artenreichtum durch bewusste Gestaltung.</p>
+                        <ul class="grid md:grid-cols-2 gap-x-12 gap-y-4 text-sm">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-layer-group text-[#9a3412]"></i> <strong class="text-[#064e3b]">7-Schichten-Waldgarten</strong> – vertikale Vielfalt</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-people-arrows text-[#9a3412]"></i> <strong class="text-[#064e3b]">Guilds</strong> – symbiotische Pflanzengemeinschaften</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-water text-[#9a3412]"></i> <strong class="text-[#064e3b]">Randzonen &amp; Edge-Effekte</strong> – Hecken, Teiche</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-bug text-[#9a3412]"></i> <strong class="text-[#064e3b]">Tier-Integration</strong> – Bienen, Vögel, Nützlinge</li>
+                        </ul>
+                        <div class="mt-6 p-4 bg-[#faf6f0] rounded-xl border-l-4 border-[#064e3b]">
+                            <p class="text-sm italic text-gray-700"><i class="fa-solid fa-info-circle mr-1"></i> <strong>Ergebnis:</strong> höhere Erträge, natürliche Schädlingskontrolle, extrem resiliente und gesunde Böden.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="ethiken" class="py-24 bg-white px-6">
+        <div class="max-w-[1440px] mx-auto text-center">
+            <span class="uppercase text-[#064e3b] text-sm font-bold tracking-widest flex items-center justify-center gap-2 reveal"><i class="fa-solid fa-dharmachakra"></i> Kern der Permakultur</span>
+            <h2 class="heading text-4xl md:text-5xl font-bold mt-4 mb-16 text-[#064e3b] reveal">Die 3 Ethiken</h2>
+            
+            <div class="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-[#faf6f0] rounded-3xl p-10 card-premium border border-gray-100 reveal-zoom delay-100 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 text-9xl opacity-5 group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-earth-americas"></i></div>
+                    <div class="text-5xl mb-6 text-[#064e3b] relative z-10"><i class="fa-solid fa-earth-americas drop-shadow-md"></i></div>
+                    <h3 class="text-2xl font-bold text-[#064e3b] relative z-10">Sorge für die Erde</h3>
+                    <p class="mt-4 text-gray-600 leading-relaxed relative z-10">Schutz, Erhalt und aktive Regeneration aller Ökosysteme als absolute Grundlage des Lebens.</p>
+                </div>
+                
+                <div class="bg-[#faf6f0] rounded-3xl p-10 card-premium border border-gray-100 reveal-zoom delay-200 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 text-9xl opacity-5 group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-users"></i></div>
+                    <div class="text-5xl mb-6 text-[#9a3412] relative z-10"><i class="fa-solid fa-users drop-shadow-md"></i></div>
+                    <h3 class="text-2xl font-bold text-[#064e3b] relative z-10">Sorge für die Menschen</h3>
+                    <p class="mt-4 text-gray-600 leading-relaxed relative z-10">Physische, emotionale und soziale Fürsorge. Respektvoller Umgang und Schulung der Achtsamkeit (Innere Permakultur) als Basis für kooperatives Handeln.</p>
+                </div>
+                
+                <div class="bg-[#faf6f0] rounded-3xl p-10 card-premium border border-gray-100 reveal-zoom delay-300 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 text-9xl opacity-5 group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <div class="text-5xl mb-6 text-[#064e3b] relative z-10"><i class="fa-solid fa-scale-balanced drop-shadow-md"></i></div>
+                    <h3 class="text-2xl font-bold text-[#064e3b] relative z-10">Fair Share</h3>
+                    <p class="mt-4 text-gray-600 leading-relaxed relative z-10">Konsum begrenzen, Überschüsse teilen, natürliche Ressourcen über Generationen hinweg gerecht verteilen.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="vernunft" class="pt-24 pb-12 relative overflow-hidden" x-data="{ scrollY: 0 }" @scroll.window="scrollY = window.pageYOffset">
+        
+        <div class="absolute inset-0 pointer-events-none flex justify-center items-center opacity-[0.03] z-0" 
+             :style="`transform: translateY(\( {scrollY * 0.15 - 150}px) scale( \){1 + scrollY * 0.0003}) rotate(${scrollY * 0.02}deg)`">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="544" viewBox="0 0 1024 544" class="w-full max-w-[150vw] h-auto">
+                <path class="theme-path" d="M180 114q-6-10-5-22-1-3 2-6 1 9 4 17l4-10q3-3 5 1 3 6-1 12-3 4 0 8 10 14 8 29c-1 16 10 24 21 32q-1-6 2-10 6 3 5 10 2 17 11 31l1 1q3-7 0-13 0-10-4-19-4-11-16-17l-11-8q-4-3-3-8c3-1 3 3 6 3q1-5 4-9 5 3 3 8-1 9 8 9-3-17-13-29-13-13-18-32-1-6-7-11-4 0-3-4 3 0 6 1-3-7 1-15 11 6 4 19l6 10c2-8-5-17 6-22q4 7 1 13-9 22 10 34 2-4 3-10 1-2-3-3-6-3-7-10-1-2 1-4 1-1 4 1 6 2 8 9 8-9-1-15-7-6-6-17 12 0 15 15V70q-2-2 0-3 3-1 3 2 3 8 4 18 8-5 12-15 4-14 18-17c4 9-2 20-10 24q-24 12-30 36-4 12 3 24 4-4 1-7l-1-2q-4-6 0-10c4-2 5 3 8 5 1-7-6-14 2-20l4 7c1 3-2 6 0 9 4 0 3-4 6-5q2 3 0 6l-4 5c-8 9-11 24-6 35q1 1 2-2 4-9 10-15 15-15 3-31-5-7-4-17-1-2 3-5c2 5 0 12 6 16q3-3 1-7-2-11 8-17 7 9 0 18-8 8-2 18l2 7q8-9 11-19l2-6q1-8-5-14-10-10-1-21 9 5 8 17 5-7 12-10 3-1 5 1v5q-2 5-8 6-6 2-6 8c1 3-1 8 2 9 3 2 6-2 8-4q6-3 9-9v-9q-3-8 2-14 9 4 4 19 5-6 12-8 6-1 4 4-2 10-12 12-3 1-6-2-5 11-15 16-6 4-9 10-9 16-22 29-6 6-9 13-6 9-4 20 2-11 12-14c5 10-3 18-12 18 0 9 7 17 2 27q10-9 15-19 4-9 2-19t3-20q0-2 3-3c3 3-2 7 0 11 3 0 4-4 7-3q3 5-1 9c-6 4-4 9-2 14q5-3 6-7 2-6 3-13 3-7-5-12-4-2-4-9-1-3 1-4 3-1 4 1l6 5q5-7 3-15-5-11 6-17 4 6 3 14 6-6 8-13 2-10 13-11 2 11-7 17-14 10-18 28l2 4c7-7 17-11 21-21q3-12 11-22-7-12 2-20 5-5 6 2 2 6-2 14h8q0 3-3 3-13 9-15 24 0 4 3 4 6 1 12-2 9 0 9-9 1-9 8-13 3-2 5-1 2 2 1 5l-3 9q10-1 17 4-6 10-17 6-7-3-13 3l-2 1q-10 3-21 5-19 7-27 26-2 3 0 6 2 2 5-1l12-4q6-3 9-8l1-1 6-7q4-4 13-4-10 6-13 16 3 2 6 0 18-5 26-21l4-5c3 2 0 4 1 6q12-12 22-5-5 12-18 10-5-1-8 3l-9 12q7 4 9-4c1-4 6-9 8-7 4 3 1 6 0 9q4-1 8-3 0 4-4 7-8 6-17 5-24 0-46 8l-4 3q5 8 10 0 4-4 10-2-1 5-6 8 9 4 13-5 6-8 15-7 6 0 3 5-4 9-14 9-4 0-6 3 2 3 5 7-4 2-7-1-5-4-10-4l-9-2q-25-9-40 14-5 6-6 14c9-6 21-5 27-16q4-7 15-6c-2 5-8 6-9 11l2 2q16 0 31-1 13-4 17-17 3-7 10-9 5-2 4 4-1 8-9 9-5 1-6 8 10-3 16-9 8-12 19-23l2-4q3-7 12-8 4 0 3 4-3 8-10 10-4 1-7 5l-9 13q10 2 15 10-4 1-7-1-8-5-14 1l-10 7q21 13 38-6 10-11 22-3-6 9-16 8-7-1-9 5 12 0 16 10-9 5-16-3-3-3-6-2-15 6-30 0h-21l-5 3c7 5 13 12 23 13q13 2 26 5 7 1 10 9-9 6-17-3-9-7-19-3 4 4 9 10 3 6 0 13-10-2-11-13 0-12-14-15 10 11 3 23-8-4-8-13 1-10-5-16-9-8-21-9-35 0-50 32l-3 4c-3-13-10-25-9-39q-3 9 1 19l2 6q8 20-4 36l-7 9q-9 10-12 22-4-3-4-8-1 13 8 21l9 8q15 14 17 34l-1 3q-5-9-11-16t-15-12l6 6q12 9 18 23 10 20 32 24 12 3 26-2 19-7 36-19l25-17q1-3 5-2l-32 30 1 1 14-13q28-25 62-39 11-5 21-5 3 0 6 2l-4 2q-34 15-62 40-20 18-44 35l-20 11-2 4c8-6 17-5 25-9q14-6 29-1 9 4 18-2 4-4 10-2-2 3-5 5-12 9-26 5h-2q-3-1-5 1-1 4 2 5l12 6 4 3q-3 2-8 1-9-2-17-9c-5-3-15-3-20 2q-2 3 2 4h10q10 0 16 7h-1q-12-2-24 0-9 0-15-5l-10-6q-4-1-1-5-14 3-30 4 3 5 7 5l11-1q8-2 14 4c-4 3-10-1-13 4q7 3 13 2 17 0 30 6 9 3 17 0 5-3 12 2c-10 1-17 7-26 5l-10-3h-5q-1 3 1 5 3 6 10 9 2 0 3 4-8 0-14-5l-6-8q-5-6-14-7-5 1-3 4 6 13 16 22 5 2 9 5-3 2-7 1-6-1-11-5-4-4-7 2-2 4-1 9 1 3-1 5-4-2-4-7v-11c2-11-2-15-10-22q-3-3-5 3-2 10 4 19 9 13-1 25c-2-5 1-9 0-13q-2-6-7-10l-4 4q-2-6-1-12l1-8q1-17-15-23h-4q-2 2 0 5l6 6q3 3 5 8-11-4-17-13l-4-9q-2-7-11-10v5q4 16 18 25l7 5q8 6 10 15c1 7-1 15 6 22q-8 0-9-5l-3-12q-1-7-7-13h-4q-2 1-1 3-1 12 6 21 5 7 1 14-2 0-2-2l-2-7q-5-9-9 0-3 5-9 9h-6q19-16 10-41-11 12-13 26-4-6-2-13l5-11q4-11-2-17h-1l-10 21q-2 8 2 15 3 9 0 16-1 3-4 4v-5l-3-15q-3-5-7-2-8 5-12 15 0 2-2 4-3-4-1-9 2-9 9-13 23-23 17-55 0-3-2-7-4 1-3 5l-1 7q2 13-6 22-4 7-3 13t-3 10c-2-10-4-20 4-28q4-9 0-18-2 1-3 3l-3 11q-2 7-6 12-7 9-4 20 2 8-3 15-1 3-5 2 4-7 2-16-1-3-3-4-3-1-5 3-4 5-5 12 0 3-3 5-3-11 2-20l6-8q2-1 1-3 0-2-3-1-6-1-7 6-1 10-10 16-2 3-5 3 0-3 2-4 4-5 6-11 1-4-2-6-2-1-5 1l-8 4q3-6 8-10 11-5 3-17c-6 12-21 15-23 30q-4-3-3-6 2-8 8-13 2-1 1-4 0-2-4-2-9 0-18 5l-4 2q1-4 4-7 8-5 17-5 8-1 15-6c2-3 5-6-1-8q2-5 7-6 9-2 19-8l5-4c-6-5-18-3-23 2l-5 6q-7 10-19 13-7 2-13 7-4 5-11 3c9-5 13-14 24-16q5 0 8-7-9-4-17 1l-10 8q-9 7-19 2c6-3 15-3 19-11-12 4-21-4-31-8q5-4 9-1 14 7 26 0 9-3 17-1 7 0 13-4l7-4q12-5 24-5 24-1 25-26v-10q16 10 28 22l-11-14q-12-14-16-30-4-25 11-46 12-16 8-36-2-9-9-17c-9-8-22-5-26 6q-5 9-12 10-4 0-4-4 2-9 10-12-5-6-17-6 1-3 4-4h8c9 4 16 0 24-4q-6-7-14-8-26-2-36 23-1 4 2 7 5 6 2 12-2 6-6 1l-4-12q-3 10-7 17 12 9 5 18-5-2-8-9-3 10-10 13-5 3-5-3 0-10 8-15 9-4 7-13-7 2-12 8-5 10-18 8 0-8 6-11c4-3 9-2 14-5q-10 0-15-6 4-6 11-5 7 0 8 8 12-8 17-21-4-1-5 2-6 5-14 2-4-1-1-5 4-5 12-5t14-6l11-9q-3-2-7-2-16 2-31 8-13 5-16 19-3 12-17 12-2-12 11-19l-15-2q-2-1-3 3-3 6-11 7 0-15 15-15 8 2 17-1 2-1 5-6c-10-1-15-13-26-10q-4 0-2-4 10-3 19 3t20 3l-12-12q-2-2-5 0-6 3-12 0-4-2-1-5 7-5 15-2-3-9-9-12 1 6-5 8-6 4-12 1-1-2 1-4 3-6 11-6-14-4-14-17c11-1 16 6 21 13v-10l2-3 3 2q5 5 3 13-1 3 1 6l6 8q9 17 28 15l14-2q4-1 4-3 1-3-3-4l-4-3q3-2 5-2 6-1 9 2c9 10 21 12 32 16q15 4 26 16 0-4-4-6-5-4-8-11-2-6-8-7l-14-2q-10 0-14-10 7-5 16 2 6 7 13 4c-1-10-12-17-22-14l-9 2-4 2c-13 3-25-2-36-6q-4-3-6-8 12-6 20 2 10 14 25 2c-11-3-19-13-32-15q-9-3-17 2-7 4-14 1-3-1-4-4c7 0 14 1 19-5q-4-12-15-7t-21-3q-3-3 1-5 10-7 21 0l3 1h1q-13-16-4-27 12 6 12 20-2 14 13 19l17 3q-1-13-6-23-4-3-9-4-6 0-10-7-3-4 2-4 6 0 11 4 3 4 8 6 2-13-10-16-7-2-10-8-1-4 3-4 8 0 11 7-5-13 4-22 12 8 1 26c10 10 9 24 11 37q3 16 18 17h6c-2-6-1-11-9-14q-9-4-7-16 10 0 14 11 3-15-7-25zm-10 329 1 8q1 4 4 3 11 0 19-9 3-3 1-7-4-2-7 2-4 3-9 6 0-7 7-12l12-9q6-4 7-12-4 0-5 2-10 7-21 11-10 4-9 17m169-49a87 87 0 0 1-62 19c18 7 54-6 68-23zm-117 4q2 14 15 22-6-6-10-13l-6-15h-1z"/>
+                <path class="theme-path" d="M312 377q-10 7-22 11-21 5-26-16l-2-11q-3-17-16-29l-5-3q-14-13-2-28 10-13 18-27l6-15q1-5 7-5c35-3 66 26 68 60q3 39-26 63m-51-45q2 9 12 7 7 0 9 4 4 6 2 14v11q2 7 8 4 9-6 14-15 3-9 8-16 3-2 0-5-8-5-9-15-1-4-5-4-9 2-16-6l-1-1c-10-1-25 10-22 22m17-31-3 2q-3 1-1 3 1 4 4 1l3-3q6-5 13 0 3 3 6-1 1-4 5-9 5-5 1-10-4-4-12-3l1 3c2 8 1 8-6 10q-7 0-11 7m40 21c-4-3-5-9-10-10q-2 3-1 6l4 7q1 4 6 4 3-2 1-7m-30-36q1 3 2 2 3-2 1-5-2 0-3 3M669 208q47-1 73 36 28 41 4 83-27 47-81 56h-15q2-4 5-3 38-9 60-40 24-32 8-68-8-22-26-38a74 74 0 0 0-59-17l-3-1q16-7 34-8"/>
+                <path class="theme-path" d="M626 216q-27 11-52 26-22 13-48 16-3 1-5-1l1-2q34-19 64-44 33-26 76-26 60 2 86 56 4 9 4 16l-7-11a85 85 0 0 0-72-41q-24 0-47 11M726 296c1 30-15 51-37 67a82 82 0 0 1-96 5q-26-16-48-36l-2-2q4-2 7 0 18 6 34 16 22 11 46 14 32 0 57-19 23-15 31-40 3-7 3-16v-9q6 9 5 20M508 331l-2-2q-4-4-3-8c2-2 10-2 12 1q5 5 11 3 5-1 6-6v-4h-4c-9 4-20-1-24-7-6-9-5-22 1-30q9-10 22-6 4 2 8 0h6q4 0 4 4v40c-1 18-20 26-37 15m15-50-4 1q-8 4-8 12 1 8 8 12 7 2 11-4c7-7 2-19-7-21"/>
+                <path class="theme-path" d="M602 287v-29q0-6 6-5 7-1 6 5v14q3 2 4 1c18-7 33 5 31 25-2 19-19 26-34 17q-3 2-5 3-9 3-8-7zm27-5q-9-2-13 4-4 9 0 17 4 6 12 5 3 0 6-4c5-5 4-20-5-22M823 272q12-7 23 0 2-7 1-15 2-10 11-6l1 4v57q1 4-3 4c-3 0-7 2-9-3q-18 11-32-6c-6-12-3-28 8-35m23 14q-3-6-10-7-6 0-10 5-5 9 0 17 3 6 11 6 7-2 9-8 3-6 0-13M484 317h-5c-15 7-33-4-29-27 3-14 15-21 28-16l4 1q2-6 1-13t6-6q6 0 5 5v48q2 12-10 8m-17-10q9 4 14-4 3-6 1-13-3-7-11-7-7 0-9 8-3 9 5 16M575 309q4-1 6-3 7-6 14-1-3 8-11 12c-9 4-21 2-28-6-6-7-7-21-2-30q9-13 27-9 15 5 15 23 0 4-4 3h-21q-5-1-7 3 1 5 5 6zm-1-20h4q3 0 4-3 1-1-2-3-5-4-11-1-4 1-4 5 2 3 5 2zM878 300q9 13 20 3c3-5 6-2 9 0 4 2 0 5-1 6q-9 11-22 8t-18-15q-5-15 5-27 9-9 23-5 16 5 16 23 0 4-4 3l-23 1q-4-1-5 3m5-21q-4 3-5 7c4 2 16 2 19 0q-2-9-14-7M199 353q-15-36 6-68c7-10 16-20 18-34q5 8 4 14-2 15-9 26t-11 24q-5 18 4 34l5 12q-6-4-11-8c-1 3 2 6 0 10q-4-5-6-10M397 318q-15-1-19-14-4-17 7-27c7-5 18-6 25-1q11 8 9 20 0 4-4 3h-22q-2 0-4 2-1 3 2 4 7 7 15 1c5-4 6-4 12 0-1 7-11 13-21 12m-8-30 1 2h18q-2-7-8-7-6-2-11 5M670 306q13 6 15-7v-22q2-6 6-5 6-1 6 5v34q-1 11-10 6h-5c-15 6-27-2-27-17v-24q1-6 7-4 6-1 5 5v20q-1 5 3 9M774 295v17q1 5-5 4-5 2-6-4v-38q0-3 2-4c4 0 8-2 10 3q8-5 17-4 11 3 13 13 2 15 1 30-1 6-7 4-4 1-4-4l-1-23q0-10-8-10-9 0-11 9zM955 275q4 5 4 11v26q0 5-5 4-5 2-6-4v-22q0-11-9-11-9 1-11 11v21q0 6-6 5-5 1-5-5v-34c0-2-2-6 2-7q6-3 10 3 14-9 26 2M444 273q6-1 5 3c0 3 3 6-3 8q-10 1-10 12v16q2 7-6 6-6 0-5-6v-32q0-9 8-6 6 2 11-1M611 346q20 8 41 7c-15 15-64-4-78-29q18 12 37 22M134 179q5-1 10 2l7 1q3-1 5 1-2 4-6 3-5-1-8 2-9 5-17-3 3-5 9-6M379 228q9-3 15 2c-3 8-13 11-20 8q-3-2-1-5t6-5M88 200q-8 6-17 1-6-3-1-5 9-7 17-2 3 2 1 6M345 131q-4 1-5-3-3-10 6-17 9 9-1 20M180 114l1 2q1 4-4 4-10 2-14-9 8-4 17 3M249 65q1 7-3 9-4-1-6-6c-2-4-1-12 1-12q6 1 8 8zM329 159l-1 1q-3 5-7 3-2-4-1-7c0-4 5-10 7-9q5 4 2 10zM388 181q10-8 16 1-6 7-14 4-3-1-2-5"/>
+                <path class="theme-path" d="M393 190q7-3 13 2-5 10-18 3 2-4 5-5M86 217l-4-5q9-4 15 3 2 4-2 5t-9-3M147 127q6 0 6 4-1 5-7 5-5 0-8-4 3-4 9-5M350 136l2-1q6-3 10 2 3 1 2 4 0 3-4 2-7 0-10-7M173 106q-7 0-9-8 11-1 9 8"/>
+            </svg>
+        </div>
+
+        <div class="px-6 max-w-[1440px] mx-auto">
+            <div class="max-w-4xl mx-auto reveal relative z-10">
+                <div class="text-center mb-12">
+                    <span class="uppercase text-[#9a3412] text-sm font-bold tracking-widest flex items-center justify-center gap-2"><i class="fa-solid fa-brain"></i> Achtsamkeit & Resilienz</span>
+                    <h2 class="heading text-4xl md:text-5xl font-bold text-[#064e3b] mt-4">Vernünftiges Miteinander statt Dogmatismus</h2>
+                </div>
+                
+                <div class="bg-white/95 backdrop-blur-sm rounded-[2rem] p-8 md:p-12 card-premium border border-gray-100 space-y-8 text-gray-700 leading-relaxed shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-yin-yang absolute -right-10 -bottom-10 text-9xl text-gray-50 opacity-[0.03] rotate-12"></i>
+                    
+                    <p class="text-lg md:text-xl relative z-10 font-medium text-[#064e3b]">
+                        Ein spirituelles Leben, im besten Sinne als Verbindung zum Ganzen und Sinnstiftung verstanden, ist für uns der Nährboden für wahre Nachhaltigkeit. Achtsamkeit gegenüber sich selbst und der Umwelt führt zu respektvollem Verhalten und erhöht die persönliche wie kollektive Resilienz.
+                    </p>
+                    
+                    <div class="flex flex-col md:flex-row gap-8 items-start border-t border-gray-100 pt-8 relative z-10">
+                        <div class="flex-none w-16 h-16 bg-[#faf6f0] rounded-full flex items-center justify-center text-3xl text-[#9a3412] shadow-inner">
+                            <i class="fa-regular fa-lightbulb"></i>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-2xl font-bold text-[#064e3b]">Wissenschaftlich fundiert, nicht dogmatisch.</h4>
+                            <p>
+                                Permakultur ist ergebnisorientiert und pragmatisch, nicht moralisch verurteilend. Wir vermeiden starre Dogmen und setzen auf vernünftiges, weltoffenes Denken, Empathie und ein konstruktives Miteinander.
+                            </p>
+                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200/60 mt-4">
+                                <p class="text-sm italic text-gray-600 leading-relaxed">
+                                    <i class="fa-solid fa-quote-left text-gray-300 mr-2"></i>Wir betrachten Kontexte: Ein nicht-dogmatischer Ansatz fragt beim Fleischkonsum nicht nach pauschalen Verboten, sondern nach der Integration in geschlossene Kreisläufe (z.B. Mob Grazing zur Bodenverbesserung vs. industrielle Haltung). Auch die Nutzung vorhandener Ressourcen, wie Lederreste aus Abfällen, kann wertvoller sein als die Herstellung synthetischer Alternativen – ein Beitrag zur Resilienz durch pragmatisches Kreislaufdenken.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-5xl mx-auto mt-16 mb-8 reveal delay-200 relative z-10" 
+                 x-data="{ 
+                     activeQuote: 0, 
+                     interval: null,
+                     quotes: [
+                         { text: 'Meine Handlungen sind mein einziger wahrer Besitz. Ich kann mich den Folgen meines Handelns nicht entziehen. Mein Handeln ist der Grund, auf dem ich stehe.', author: 'Thich Nhat Hanh' },
+                         { text: 'Die Natur macht keine Sprünge.', author: 'Carl von Linné' },
+                         { text: 'Wir können Probleme nicht mit der gleichen Denkweise lösen, durch die sie entstanden sind.', author: 'Albert Einstein' },
+                         { text: 'Der ultimative Zweck der Landwirtschaft ist nicht das Anbauen von Nutzpflanzen, sondern die Kultivierung und Vervollkommnung der Menschen.', author: 'Masanobu Fukuoka' },
+                         { text: 'Wer Bäume setzt, obwohl er weiß, dass er nie in ihrem Schatten sitzen wird, hat zumindest angefangen, den Sinn des Lebens zu begreifen.', author: 'Rabindranath Tagore' },
+                         { text: 'Die größte Gefahr für unseren Planeten ist der Glaube, dass jemand anderes ihn retten wird.', author: 'Robert Swan' },
+                         { text: 'Zuerst formen wir unsere Werkzeuge, und dann formen unsere Werkzeuge uns.', author: 'Marshall McLuhan' },
+                         { text: 'Wir haben die Erde nicht von unseren Eltern geerbt, sondern von unseren Kindern geliehen.', author: 'Indigenes Sprichwort' },
+                         { text: 'Ein System, das seine eigene Umgebung zerstört, zerstört sich selbst.', author: 'Gregory Bateson' },
+                         { text: 'Das Wenige, das du tun kannst, ist viel, wenn du nur irgendwo Schmerz und Weh und Angst von einem Wesen nimmst.', author: 'Albert Schweitzer' },
+                         { text: 'Die Natur versteht keinen Spaß, sie ist immer wahr, immer ernst, immer streng, sie hat immer recht.', author: 'Johann Wolfgang von Goethe' }
+                     ],
+                     startInterval() {
+                         this.interval = setInterval(() => {
+                             this.activeQuote = (this.activeQuote + 1) % this.quotes.length;
+                         }, 5000);
+                     },
+                     resetInterval() {
+                         clearInterval(this.interval);
+                         this.startInterval();
+                     }
+                 }"
+                 x-init="startInterval()">
+                
+                <div class="bg-white/95 backdrop-blur-sm rounded-[2rem] card-premium border border-gray-100 shadow-xl relative overflow-hidden text-center min-h-[420px] md:min-h-[300px]">
+                    
+                    <i class="fa-solid fa-quote-right absolute top-6 right-8 text-8xl text-[#064e3b] opacity-[0.03]"></i>
+                    <i class="fa-solid fa-quote-left absolute bottom-6 left-8 text-8xl text-[#9a3412] opacity-[0.03]"></i>
+
+                    <div class="absolute inset-0 p-6 md:p-14 flex items-center justify-center">
+                        <template x-for="(quote, index) in quotes" :key="index">
+                            <div x-show="activeQuote === index"
+                                 x-transition:enter="transition ease-out duration-700 delay-100"
+                                 x-transition:enter-start="opacity-0 translate-y-6"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-500 absolute"
+                                 x-transition:leave-start="opacity-100"
+                                 x-transition:leave-end="opacity-0 -translate-y-6"
+                                 class="w-full max-w-3xl absolute flex flex-col items-center justify-center px-4">
+                                
+                                <p class="heading text-xl md:text-3xl font-bold text-[#064e3b] leading-relaxed mb-6 md:mb-8">
+                                    „<span x-text="quote.text"></span>“
+                                </p>
+                                
+                                <div class="flex items-center justify-center gap-3 md:gap-4 w-full px-4">
+                                    <div class="flex-1 max-w-[40px] h-[2px] bg-[#9a3412] opacity-50"></div>
+                                    <p class="text-sm md:text-base text-gray-500 font-semibold tracking-wide uppercase text-center" x-text="quote.author"></p>
+                                    <div class="flex-1 max-w-[40px] h-[2px] bg-[#9a3412] opacity-50"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-wrap justify-center gap-2 md:gap-3 px-4 w-full z-10">
+                        <template x-for="(quote, index) in quotes" :key="index">
+                            <button @click="activeQuote = index; resetInterval()" 
+                                    class="h-2 rounded-full transition-all duration-500 ease-out"
+                                    :class="activeQuote === index ? 'bg-[#9a3412] w-6 md:w-8' : 'bg-gray-200 hover:bg-[#064e3b]/50 w-2'"></button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pb-24 px-6 max-w-[1440px] mx-auto text-center reveal delay-200">
+        <div class="max-w-4xl mx-auto flex flex-col items-center justify-center bg-[#064e3b] rounded-3xl p-10 text-white shadow-xl glow-shadow relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+            <h3 class="heading text-3xl font-bold mb-4 relative z-10">Bereit für konstruktives Handeln?</h3>
+            <p class="text-white/80 mb-8 max-w-lg relative z-10">Lass uns gemeinsam nach diesen ethischen und vernünftigen Prinzipien gestalten.</p>
+            <button onclick="document.getElementById('kontakt').scrollIntoView({behavior:'smooth'})" class="relative z-10 px-8 py-4 bg-[#faf6f0] text-[#064e3b] hover:bg-white rounded-full text-lg font-bold transition-all shadow-xl hover:-translate-y-1 hover:scale-105 flex items-center gap-3">
+                <i class="fa-solid fa-paper-plane text-[#9a3412]"></i> Projekt starten oder mitwirken
+            </button>
+        </div>
+    </section>
+
+    <section id="mollison" class="py-24 bg-white px-6">
+        <div class="max-w-[1440px] mx-auto text-center mb-16 reveal">
+            <span class="uppercase text-[#9a3412] text-sm font-bold tracking-widest flex items-center justify-center gap-2"><i class="fa-solid fa-drafting-compass"></i> Technische Gestaltung</span>
+            <h2 class="heading text-4xl md:text-5xl font-bold text-[#064e3b] mt-4">Mollison Design-Tools</h2>
+            <p class="mt-6 text-xl max-w-2xl mx-auto text-gray-600">Die präzisen Werkzeuge aus Bill Mollisons „Designers’ Manual“ – 5 Kernprinzipien + 12 technische Prinzipien.</p>
+        </div>
+
+        <div class="max-w-4xl mx-auto mb-20 px-6 reveal delay-100">
+            <h3 class="heading text-2xl font-bold mb-8 text-center text-[#064e3b]">Die 5 Kern-Design-Prinzipien</h3>
+            <div class="space-y-4">
+                <div class="card-premium rounded-3xl overflow-hidden bg-[#faf6f0] border border-gray-100">
+                    <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 text-left focus:outline-none group gap-4">
+                        <span class="text-lg md:text-xl font-bold text-[#064e3b] flex items-center gap-3"><i class="fa-solid fa-water text-[#9a3412] w-6 text-center"></i> 1. Arbeite mit der Natur, nicht gegen sie</span>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm"><i class="fa-solid fa-chevron-down text-[#064e3b] transition-transform duration-300"></i></div>
+                    </button>
+                    <div class="accordion-content px-6 md:px-[4.5rem] pb-6 text-gray-600 border-t border-gray-200/50 pt-4">Nutze natürliche Prozesse statt sie zu bekämpfen. Swales statt Drainage, Waldgärten statt Monokultur. Die Natur macht die meiste Arbeit, wenn wir sie lassen.</div>
+                </div>
+                
+                <div class="card-premium rounded-3xl overflow-hidden bg-[#faf6f0] border border-gray-100">
+                    <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 text-left focus:outline-none group gap-4">
+                        <span class="text-lg md:text-xl font-bold text-[#064e3b] flex items-center gap-3"><i class="fa-solid fa-puzzle-piece text-[#9a3412] w-6 text-center"></i> 2. Das Problem ist die Lösung</span>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm"><i class="fa-solid fa-chevron-down text-[#064e3b] transition-transform duration-300"></i></div>
+                    </button>
+                    <div class="accordion-content px-6 md:px-[4.5rem] pb-6 text-gray-600 border-t border-gray-200/50 pt-4">Jede Schwierigkeit birgt eine Chance. Du hast keine Schneckenplage, du hast zu wenig Enten. Zuviel Schatten bedeutet den perfekten Platz für Schattenpflanzen.</div>
+                </div>
+                
+                <div class="card-premium rounded-3xl overflow-hidden bg-[#faf6f0] border border-gray-100">
+                    <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 text-left focus:outline-none group gap-4">
+                        <span class="text-lg md:text-xl font-bold text-[#064e3b] flex items-center gap-3"><i class="fa-solid fa-compress-arrows-alt text-[#9a3412] w-6 text-center"></i> 3. Kleinstmögliche Veränderung = größter Effekt</span>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm"><i class="fa-solid fa-chevron-down text-[#064e3b] transition-transform duration-300"></i></div>
+                    </button>
+                    <div class="accordion-content px-6 md:px-[4.5rem] pb-6 text-gray-600 border-t border-gray-200/50 pt-4">Minimaler Input, maximaler Output. Den Hebel an der richtigen Stelle ansetzen. Ein intelligent geplanter Graben (Swale) kann teure Bewässerungssysteme überflüssig machen.</div>
+                </div>
+                
+                <div class="card-premium rounded-3xl overflow-hidden bg-[#faf6f0] border border-gray-100">
+                    <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 text-left focus:outline-none group gap-4">
+                        <span class="text-lg md:text-xl font-bold text-[#064e3b] flex items-center gap-3"><i class="fa-solid fa-infinity text-[#9a3412] w-6 text-center"></i> 4. Der Ertrag ist unbegrenzt</span>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm"><i class="fa-solid fa-chevron-down text-[#064e3b] transition-transform duration-300"></i></div>
+                    </button>
+                    <div class="accordion-content px-6 md:px-[4.5rem] pb-6 text-gray-600 border-t border-gray-200/50 pt-4">Systeme können unendlich viele Erträge (Nahrung, Energie, Wissen, Freude) liefern. Die einzige Grenze ist die Vorstellungskraft und das Wissen des Designers.</div>
+                </div>
+                
+                <div class="card-premium rounded-3xl overflow-hidden bg-[#faf6f0] border border-gray-100">
+                    <button onclick="toggleAcc(this)" class="w-full flex justify-between items-center p-6 text-left focus:outline-none group gap-4">
+                        <span class="text-lg md:text-xl font-bold text-[#064e3b] flex items-center gap-3"><i class="fa-solid fa-seedling text-[#9a3412] w-6 text-center"></i> 5. Alles gärtnert</span>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm"><i class="fa-solid fa-chevron-down text-[#064e3b] transition-transform duration-300"></i></div>
+                    </button>
+                    <div class="accordion-content px-6 md:px-[4.5rem] pb-6 text-gray-600 border-t border-gray-200/50 pt-4">Jeder Teil des Systems (Tiere, Pflanzen, Wind, Wasser) verändert die Umgebung. Schweine pflügen, Hühner düngen und jäten. Diese Funktionen müssen aktiv gestaltet werden.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-[1440px] mx-auto px-6 pb-24 reveal delay-200">
+            <h3 class="heading text-2xl font-bold mb-8 text-center text-[#064e3b]">Die 12 technischen Prinzipien</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm max-w-7xl mx-auto">
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-map-location-dot text-[#9a3412] text-xl"></i><span>1. Relative Location</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-network-wired text-[#9a3412] text-xl"></i><span>2. Jedes Element viele Funktionen</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-shield-halved text-[#9a3412] text-xl"></i><span>3. Wichtige Funktion durch viele Elemente</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-bolt text-[#9a3412] text-xl"></i><span>4. Effiziente Energieplanung</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-leaf text-[#9a3412] text-xl"></i><span>5. Biologische Ressourcen nutzen</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-recycle text-[#9a3412] text-xl"></i><span>6. Energie-Kreisläufe schließen</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-compress text-[#9a3412] text-xl"></i><span>7. Kleine intensive Systeme</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-forward-step text-[#9a3412] text-xl"></i><span>8. Sukzession beschleunigen</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-cubes-stacked text-[#9a3412] text-xl"></i><span>9. Vielfalt nutzen</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-chart-area text-[#9a3412] text-xl"></i><span>10. Edge-Effekte maximieren</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-arrows-left-right-to-line text-[#9a3412] text-xl"></i><span>11. Alles wirkt beidseitig</span></div>
+                <div class="bg-white rounded-2xl p-4 md:p-6 card-premium font-medium text-gray-700 text-center flex flex-col items-center justify-center gap-2 border border-gray-100 shadow-sm"><i class="fa-solid fa-lightbulb text-[#9a3412] text-xl"></i><span class="text-xs">12. Informations- &amp; imaginationsintensiv</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="prinzipien" class="py-24 bg-[#064e3b] px-6 text-[#faf6f0] relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none opacity-20">
+            <div class="absolute -top-40 -right-40 w-96 h-96 bg-[#0a5c46] rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-[#043d2e] rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-[1440px] mx-auto relative z-10">
+            <div class="text-center mb-16 reveal">
+                <span class="uppercase text-[#faf6f0]/70 text-sm font-bold tracking-widest mb-4 block"><i class="fa-solid fa-star-of-life mr-2"></i>Philosophischer Rahmen</span>
+                <h2 class="heading text-4xl md:text-5xl lg:text-6xl font-bold">Die 12 Holmgren-Prinzipien</h2>
+                <p class="mt-6 text-xl max-w-2xl mx-auto opacity-90">Der ethische und handlungsorientierte Kompass für nachhaltiges Design auf allen Ebenen.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="prinzipien-grid"></div>
+        </div>
+    </section>
+
+    <section id="netzwerk" class="py-24 bg-white px-6 text-center border-b border-gray-100 reveal">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="heading text-4xl md:text-5xl font-bold text-[#064e3b]">Werde Teil des Netzwerks</h2>
+            <p class="mt-8 text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">Gemeinsam regenerative Projekte umsetzen, Wissen teilen und eine enkeltaugliche Zukunft gestalten. Wir freuen uns auf dich.</p>
+            <button onclick="document.getElementById('kontakt').scrollIntoView({behavior:'smooth'})" class="mt-12 px-10 py-5 bg-[#064e3b] text-white hover:bg-[#042f2e] rounded-full text-lg font-bold transition-all shadow-xl shadow-[#064e3b]/20 hover:-translate-y-1 glow-btn flex items-center justify-center gap-3 mx-auto">
+                <i class="fa-solid fa-seedling"></i> Jetzt beitreten
+            </button>
+        </div>
+    </section>
+
+    <section id="kontakt" class="py-24 px-6 bg-[#faf6f0]">
+        <div class="max-w-[1440px] mx-auto grid md:grid-cols-12 gap-16 items-center reveal">
+            <div class="md:col-span-5">
+                <span class="inline-block py-1 px-3 rounded-full bg-[#9a3412]/10 text-[#9a3412] text-sm font-bold tracking-wide mb-6">
+                    <i class="fa-solid fa-envelope"></i> Direktnachricht
+                </span>
+                <h2 class="heading text-5xl md:text-6xl font-bold text-[#064e3b] mb-6 tracking-tight">Kontakt & Mitwirken</h2>
+                
+                <div class="flex items-center gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 w-max">
+                    <div class="w-12 h-12 rounded-full bg-[#064e3b]/10 flex items-center justify-center text-[#064e3b] text-xl">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg text-[#064e3b] font-bold leading-tight">Jonas Zeußel</p>
+                        <p class="text-sm text-gray-500 font-medium">Nürnberg, Bayern</p>
+                    </div>
+                </div>
+
+                <p class="text-lg text-gray-600 leading-relaxed max-w-md">
+                    Schreib mir – ob du ein Projekt starten, dem Netzwerk beitreten oder dich einfach austauschen möchtest.
+                </p>
+            </div>
+            <div class="md:col-span-7 bg-white rounded-[2rem] p-8 md:p-10 card-premium border border-gray-100 shadow-xl shadow-[#064e3b]/5">
+                <form action="https://formsubmit.co/jonas.zeussel@erdgebunden.de" method="POST" class="space-y-6">
+                    <div class="relative">
+                        <i class="fa-regular fa-user absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" name="name" placeholder="Dein Name" required class="w-full pl-14 pr-6 py-4 rounded-xl border border-gray-200 focus:border-[#064e3b] focus:ring-2 focus:ring-[#064e3b]/20 outline-none text-lg bg-white transition-all">
+                    </div>
+                    <div class="relative">
+                        <i class="fa-regular fa-envelope absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="email" name="email" placeholder="Deine E-Mail" required class="w-full pl-14 pr-6 py-4 rounded-xl border border-gray-200 focus:border-[#064e3b] focus:ring-2 focus:ring-[#064e3b]/20 outline-none text-lg bg-white transition-all">
+                    </div>
+                    <div class="relative">
+                        <i class="fa-regular fa-comment-dots absolute left-6 top-6 text-gray-400"></i>
+                        <textarea name="message" rows="5" placeholder="Deine Nachricht oder Idee…" required class="w-full pl-14 pr-6 py-4 rounded-xl border border-gray-200 focus:border-[#064e3b] focus:ring-2 focus:ring-[#064e3b]/20 outline-none text-lg bg-white transition-all resize-none"></textarea>
+                    </div>
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRQy7Q0W4Q8zJ4z4z4z4z4z"></div>
+                    <button type="submit" class="w-full py-5 bg-[#064e3b] hover:bg-[#042f2e] text-white rounded-xl text-xl font-bold shadow-lg shadow-[#064e3b]/20 transition-all flex items-center justify-center gap-3 glow-btn hover:-translate-y-1">
+                        <i class="fa-solid fa-paper-plane"></i> Nachricht senden
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-[#042f2e] text-[#faf6f0]/60 py-12 px-6 text-center text-sm border-t border-white/5 relative z-20">
+        <div class="max-w-[1440px] mx-auto">
+            <p class="font-medium text-white/80">© 2026 Jonas Zeußel • Nürnberg, Bayern • jonas.zeussel@erdgebunden.de</p>
+            <p class="mt-2 text-xs opacity-70">Permakultur-Prinzipien nach David Holmgren & Bill Mollison.</p>
+            <div class="flex gap-6 justify-center mt-6">
+                <a href="#" class="hover:text-white transition-colors flex items-center gap-1"><i class="fa-solid fa-file-contract text-xs"></i> Impressum</a>
+                <a href="#" class="hover:text-white transition-colors flex items-center gap-1"><i class="fa-solid fa-shield-halved text-xs"></i> Datenschutz</a>
+            </div>
+        </div>
+    </footer>
+
+    <button @click="window.scrollTo({top: 0, behavior: 'smooth'})"
+            x-show="scrolled"
+            x-transition:enter="transition ease-out duration-500"
+            x-transition:enter-start="opacity-0 translate-y-12 scale-50"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-300"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-12 scale-50"
+            class="fixed bottom-8 right-8 w-14 h-14 bg-[#9a3412] text-white rounded-full shadow-2xl z-50 hover:bg-[#7c290e] hover:-translate-y-2 transition-all flex items-center justify-center text-xl glow-shadow border-2 border-white/20">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
     <script>
+        // Accordion Toggle Logic
         function toggleAcc(btn) {
             const content = btn.nextElementSibling;
             const icon = btn.querySelector('.fa-chevron-down, .fa-plus');
             const isOpen = content.classList.contains('open');
+            
             if (!isOpen) {
                 content.classList.add('open');
                 content.style.maxHeight = content.scrollHeight + 'px';
@@ -117,9 +682,55 @@
             }
         }
 
-        const prinzipienData = [ /* dein komplettes Array – unverändert */ ];
+        // 12 Principles Data with Icons
+        const prinzipienData = [
+            {num:"01", icon:"fa-eye", title:"Beobachte & interagiere", short:"Systeme intensiv beobachten, bevor man eingreift.", examples:["Garten ein Jahr lang beobachten, bevor erste Beete angelegt werden.","Wind- und Schattenkarten auf dem Hof erstellen.","Nachbarn und lokale Ressourcen analysieren."]},
+            {num:"02", icon:"fa-battery-full", title:"Sammle & speichere", short:"Ressourcen wie Wasser und Sonnenenergie langfristig binden.", examples:["Regenwasser in Zisternen und Swales.","Solarstrom mit Batterien.","Kompost als Nährstoffspeicher."]},
+            {num:"03", icon:"fa-apple-whole", title:"Erwirtschafte Ertrag", short:"Jedes Element muss einen nutzbaren Nutzen liefern.", examples:["Hühner für Eier, Fleisch und Dünger.","Obstbäume für Früchte, Schatten und Holz.","Kräutergarten für Küche und Verkauf."]},
+            {num:"04", icon:"fa-arrows-spin", title:"Selbstregulierung", short:"Systeme sich selbst regulieren und Feedback anpassen lassen.", examples:["Enten gegen Schnecken.","Gartentagebuch führen.","Feedback-Runden im Team."]},
+            {num:"05", icon:"fa-sun", title:"Erneuerbare nutzen", short:"Priorisiere Sonne, Wind, Pflanzen und Tiere.", examples:["Solarpaneele statt Gas.","Eigener Mulch statt Torf.","Tiere als Mäher."]},
+            {num:"06", icon:"fa-dumpster-fire", title:"Kein Abfall", short:"Alles wird als Ressource gesehen. Geschlossene Kreisläufe.", examples:["Küchenabfälle → Kompost.","Grauwasser zur Bewässerung.","Alte Kleidung als Mulch."]},
+            {num:"07", icon:"fa-magnifying-glass-chart", title:"Muster zum Detail", short:"Vom großen Ganzen in die Feinplanung.", examples:["Zonen- und Sektorenplan erstellen.","Wasserverlauf als Hauptmuster nutzen.","Waldgarten in Zonen planen."]},
+            {num:"08", icon:"fa-handshake-angle", title:"Integrieren", short:"Elemente zusammenbringen. Kooperation statt Konkurrenz.", examples:["Hühnerstall am Beet positionieren.","Mischkultur statt Monokultur.","Gemeinschaftsgarten mit Tieren."]},
+            {num:"09", icon:"fa-turtle", title:"Klein & langsam", short:"Schrittweise Entwicklung für höhere Resilienz.", examples:["10 m² Hochbeet starten statt 1 ha Acker.","Einen Baum pflanzen und beobachten."]},
+            {num:"10", icon:"fa-tree-city", title:"Vielfalt schätzen", short:"Diversität führt zu Stabilität.", examples:["12 Tomatensorten.","7-Schichten-Waldgarten.","Mehrere Einkommensquellen."]},
+            {num:"11", icon:"fa-bridge-water", title:"Randzonen", short:"Ränder sind produktiv und kreativ.", examples:["Teichrand bepflanzen.","Hecke als Beerenzone nutzen.","Feldrand für Wildblumen."]},
+            {num:"12", icon:"fa-lightbulb", title:"Kreativ reagieren", short:"Wandel als Chance und nicht als Bedrohung sehen.", examples:["Neue Sorten bei Dürre testen.","Kurse statt nur Verkauf.","Sturmholz zur Pilzzucht."]}
+        ];
 
+        // Generate the 12 principles grid dynamically
+        const grid = document.getElementById('prinzipien-grid');
+        prinzipienData.forEach((p, index) => {
+            const delayClass = `delay-${(index % 3 + 1) * 100}`;
+            
+            const card = document.createElement('div');
+            card.className = `bg-white/10 backdrop-blur-sm text-white rounded-3xl p-8 card-premium border border-white/10 reveal-zoom ${delayClass}`;
+            card.style.color = '#faf6f0';
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-[#9a3412] font-mono text-2xl font-bold bg-white/90 w-10 h-10 flex items-center justify-center rounded-xl shadow-inner">${p.num}</span>
+                            <i class="fa-solid ${p.icon} text-2xl text-white/50"></i>
+                        </div>
+                        <h4 class="font-bold text-2xl text-white leading-tight">${p.title}</h4>
+                        <p class="mt-3 text-sm text-white/80 font-medium leading-relaxed">${p.short}</p>
+                    </div>
+                    <button onclick="this.closest('.card-premium').querySelector('.detail').classList.toggle('hidden'); this.querySelector('i').classList.toggle('rotate-45')" class="text-xl text-[#064e3b] mt-1 bg-white w-10 h-10 flex items-center justify-center rounded-full shadow-lg hover:scale-110 transition-transform flex-shrink-0">
+                        <i class="fa-solid fa-plus transition-transform duration-300"></i>
+                    </button>
+                </div>
+                <div class="detail hidden mt-6 text-sm space-y-3 pt-5 border-t border-white/20">
+                    ${p.examples.map(ex => `<div class="flex items-start gap-3 text-white/90"><span class="text-[#9a3412] font-bold"><i class="fa-solid fa-caret-right"></i></span> ${ex}</div>`).join('')}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // --- Logo Animation ---
         let logoPaths = [];
+
         function animateLogo() {
             logoPaths = document.querySelectorAll('.path');
             logoPaths.forEach((path, i) => {
@@ -131,7 +742,10 @@
                 path.style.animation = 'draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards';
             });
             setTimeout(() => {
-                logoPaths.forEach(path => { path.style.fill = '#064e3b'; path.style.transition = 'fill 0.9s ease'; });
+                logoPaths.forEach(path => {
+                    path.style.fill = '#064e3b';
+                    path.style.transition = 'fill 0.9s ease';
+                });
             }, 2400);
         }
 
@@ -143,19 +757,40 @@
                 void path.offsetWidth;
                 path.style.animation = 'draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards';
             });
-            setTimeout(() => logoPaths.forEach(path => path.style.fill = '#064e3b'), 2400);
+            setTimeout(() => {
+                logoPaths.forEach(path => {
+                    path.style.fill = '#064e3b';
+                });
+            }, 2400);
         }
 
+        // Intersection Observer for Scroll Animations
         document.addEventListener('DOMContentLoaded', () => {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.reveal, .reveal-zoom').forEach(el => observer.observe(el));
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px 0px -10% 0px',
+                threshold: 0.1
+            };
 
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+
+            const revealElements = document.querySelectorAll('.reveal, .reveal-zoom');
+            revealElements.forEach(el => observer.observe(el));
+
+            // Start logo animation
             animateLogo();
 
+            // Reset logo when scrolling back to top
             window.addEventListener('scroll', () => {
-                if (window.pageYOffset < 80) resetLogo();
+                if (window.pageYOffset < 80) {
+                    resetLogo();
+                }
             });
         });
     </script>
