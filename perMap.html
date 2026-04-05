@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>erdgebunden – WMS Viewer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        body { height: 100dvh; width: 100%; overflow: hidden; display: flex; background: #0a0f14; position: relative; }
+        
+        /* ---------- MAP ---------- */
+        #map { flex: 1; background: #1a2a32; height: 100dvh; width: 100%; z-index: 1000; }
+        
+        /* ---------- MOBILE MENU BUTTON ---------- */
+        .mobile-menu-btn { display: none; position: absolute; top: 15px; right: 15px; z-index: 4000; background: rgba(20, 28, 35, 0.9); color: #4c9f70; border: 1px solid #4c9f70; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        
+        /* ---------- SIDEBAR (Vollständig scrollbar) ---------- */
+        .sidebar { 
+            width: 380px; 
+            max-width: 100%;
+            height: 100dvh; 
+            background: rgba(20, 28, 35, 0.95); 
+            backdrop-filter: blur(12px); 
+            border-right: 1px solid rgba(255,255,255,0.1); 
+            display: block;
+            overflow-y: auto;
+            z-index: 5000; 
+            box-shadow: 8px 0 32px rgba(0,0,0,0.3); 
+            transition: transform 0.3s ease; 
+            color: #eef2ff; 
+            padding-bottom: 30px;
+        }
+        
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #1e2a32; }
+        .sidebar::-webkit-scrollbar-thumb { background: #4c9f70; border-radius: 8px; }
+
+        /* ---------- BRANDING ---------- */
+        .brand-header { text-align: center; padding: 20px 15px 15px; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; position: relative; }
+        .brand-title { font-size: 1.6rem; font-weight: 600; letter-spacing: 1px; color: #fff; margin-top: 10px; }
+        .logo-container { width: 140px; animation: pulse-logo 3s ease-in-out infinite; }
+        .animated-logo { width: 100%; height: auto; filter: drop-shadow(0 0 20px rgba(76,159,112,0.6)); }
+        .path { stroke: #4c9f70; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; fill: transparent; stroke-dasharray: 0; stroke-dashoffset: 0; }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+        @keyframes pulse-logo { 0%, 110% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+        .close-sidebar-btn { display: none; position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; padding: 10px; z-index: 5100; }
+
+        /* ---------- USER PANEL ---------- */
+        .user-panel { padding: 15px 18px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.15); }
+        .user-status { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .user-greeting { font-weight: 600; font-size: 0.9rem; background: #2a3b44; padding: 4px 12px; border-radius: 40px; }
+        .btn-icon { background: #2c3e42; border: none; color: white; padding: 8px 14px; border-radius: 30px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; font-weight: 500; }
+        .btn-icon:hover { background: #4c9f70; }
+        .login-form, .register-form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .login-form input, .register-form input { background: #1e2a32; border: 1px solid #3e5a64; padding: 8px 12px; border-radius: 30px; color: white; flex: 1; min-width: 120px; outline: none; }
+        .reserve-mode { background: #1f3b3a; margin-top: 12px; padding: 8px 12px; border-radius: 40px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #4c9f70; }
+        
+        /* Login/Register Tabs */
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid #3e5a64; }
+        .auth-tab { background: transparent; border: none; color: #9bb7c4; padding: 8px 12px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .auth-tab.active { color: #4c9f70; border-bottom: 2px solid #4c9f70; }
+        .auth-form-container { transition: all 0.2s; }
+
+        /* ---------- SEARCH & FILTER ---------- */
+        .search-box { padding: 14px 18px; background: #11181e; }
+        .search-box input { width: 100%; padding: 10px 16px; border-radius: 40px; border: none; background: #1f2c34; color: white; font-size: 0.85rem; outline: none; }
+        .filter-chips { padding: 6px 18px 12px; display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #2e4a4f; }
+        .chip { background: #1f2e36; padding: 5px 14px; border-radius: 32px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; font-weight: 500; border: 1px solid transparent; }
+        .chip.active { background: #4c9f70; color: white; border-color: #80cbc4; }
+
+        /* ---------- LAYER LIST ---------- */
+        .layer-list-container { padding: 12px 18px; }
+        .layer-category { font-size: 0.75rem; text-transform: uppercase; font-weight: bold; margin: 16px 0 8px 0; color: #9bb7c4; border-left: 3px solid #4c9f70; padding-left: 10px; }
+        .layer-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; margin: 2px 0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .layer-item:hover { background: rgba(76,159,112,0.15); }
+        .layer-item input { transform: scale(1.3); accent-color: #4c9f70; cursor: pointer; }
+        .layer-name { flex: 1; font-size: 0.85rem; line-height: 1.3; }
+        .info-icon { color: #80cbc4; cursor: pointer; font-size: 1.1rem; padding: 5px; }
+
+        /* ---------- PANELS ---------- */
+        .reservations-list { margin: 15px 18px; background: rgba(15,26,31,0.8); border-radius: 12px; padding: 12px; font-size: 0.75rem; border: 1px solid #2e5a55; }
+        .res-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; }
+        .res-item:last-child { border-bottom: none; }
+
+        .legend-panel { background: rgba(0,0,0,0.5); margin: 15px 18px; border-radius: 12px; padding: 15px; border: 1px solid #3a5a60; }
+        .legend-title { font-weight: bold; font-size: 0.85rem; margin-bottom: 10px; border-bottom: 1px solid #4c9f70; padding-bottom: 5px; }
+        .legend-content { font-size: 0.75rem; color: #ccc; }
+        .legend-img { max-width: 100%; border-radius: 4px; margin-top: 8px; background: rgba(255,255,255,0.9); padding: 5px; }
+
+        button.danger { background: #b33 !important; }
+        button.danger:hover { background: #e44 !important; }
+        .footer-note { font-size: 0.65rem; text-align: center; padding: 15px; color: #7e9aa8; opacity: 0.8; }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; }
+            .sidebar { position: absolute; top: 0; left: 0; width: 100%; transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .close-sidebar-btn { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-layer-group"></i> Tools & Layer</button>
+
+<div class="sidebar" id="sidebar">
+    <button class="close-sidebar-btn" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
+    
+    <div class="brand-header">
+        <div class="logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 544" class="animated-logo">
+                <path class="path" d="M180 114q-6-10-5-22-1-3 2-6 1 9 4 17l4-10q3-3 5 1 3 6-1 12-3 4 0 8 10 14 8 29c-1 16 10 24 21 32q-1-6 2-10 6 3 5 10 2 17 11 31l1 1q3-7 0-13 0-10-4-19-4-11-16-17l-11-8q-4-3-3-8c3-1 3 3 6 3q1-5 4-9 5 3 3 8-1 9 8 9-3-17-13-29-13-13-18-32-1-6-7-11-4 0-3-4 3 0 6 1-3-7 1-15 11 6 4 19l6 10c2-8-5-17 6-22q4 7 1 13-9 22 10 34 2-4 3-10 1-2-3-3-6-3-7-10-1-2 1-4 1-1 4 1 6 2 8 9 8-9-1-15-7-6-6-17 12 0 15 15V70q-2-2 0-3 3-1 3 2 3 8 4 18 8-5 12-15 4-14 18-17c4 9-2 20-10 24q-24 12-30 36-4 12 3 24 4-4 1-7l-1-2q-4-6 0-10c4-2 5 3 8 5 1-7-6-14 2-20l4 7c1 3-2 6 0 9 4 0 3-4 6-5q2 3 0 6l-4 5c-8 9-11 24-6 35q1 1 2-2 4-9 10-15 15-15 3-31-5-7-4-17-1-2 3-5c2 5 0 12 6 16q3-3 1-7-2-11 8-17 7 9 0 18-8 8-2 18l2 7q8-9 11-19l2-6q1-8-5-14-10-10-1-21 9 5 8 17 5-7 12-10 3-1 5 1v5q-2 5-8 6-6 2-6 8c1 3-1 8 2 9 3 2 6-2 8-4q6-3 9-9v-9q-3-8 2-14 9 4 4 19 5-6 12-8 6-1 4 4-2 10-12 12-3 1-6-2-5 11-15 16-6 4-9 10-9 16-22 29-6 6-9 13-6 9-4 20 2-11 12-14c5 10-3 18-12 18 0 9 7 17 2 27q10-9 15-19 4-9 2-19t3-20q0-2 3-3c3 3-2 7 0 11 3 0 4-4 7-3q3 5-1 9c-6 4-4 9-2 14q5-3 6-7 2-6 3-13 3-7-5-12-4-2-4-9-1-3 1-4 3-1 4 1l6 5q5-7 3-15-5-11 6-17 4 6 3 14 6-6 8-13 2-10 13-11 2 11-7 17-14 10-18 28l2 4c7-7 17-11 21-21q3-12 11-22-7-12 2-20 5-5 6 2 2 6-2 14h8q0 3-3 3-13 9-15 24 0 4 3 4 6 1 12-2 9 0 9-9 1-9 8-13 3-2 5-1 2 2 1 5l-3 9q10-1 17 4-6 10-17 6-7-3-13 3l-2 1q-10 3-21 5-19 7-27 26-2 3 0 6 2 2 5-1l12-4q6-3 9-8l1-1 6-7q4-4 13-4-10 6-13 16 3 2 6 0 18-5 26-21l4-5c3 2 0 4 1 6q12-12 22-5-5 12-18 10-5-1-8 3l-9 12q7 4 9-4c1-4 6-9 8-7 4 3 1 6 0 9q4-1 8-3 0 4-4 7-8 6-17 5-24 0-46 8l-4 3q5 8 10 0 4-4 10-2-1 5-6 8 9 4 13-5 6-8 15-7 6 0 3 5-4 9-14 9-4 0-6 3 2 3 5 7-4 2-7-1-5-4-10-4l-9-2q-25-9-40 14-5 6-6 14c9-6 21-5 27-16q4-7 15-6c-2 5-8 6-9 11l2 2q16 0 31-1 13-4 17-17 3-7 10-9 5-2 4 4-1 8-9 9-5 1-6 8 10-3 16-9 8-12 19-23l2-4q3-7 12-8 4 0 3 4-3 8-10 10-4 1-7 5l-9 13q10 2 15 10-4 1-7-1-8-5-14 1l-10 7q21 13 38-6 10-11 22-3-6 9-16 8-7-1-9 5 12 0 16 10-9 5-16-3-3-3-6-2-15 6-30 0h-21l-5 3c7 5 13 12 23 13q13 2 26 5 7 1 10 9-9 6-17-3-9-7-19-3 4 4 9 10 3 6 0 13-10-2-11-13 0-12-14-15 10 11 3 23-8-4-8-13 1-10-5-16-9-8-21-9-35 0-50 32l-3 4c-3-13-10-25-9-39q-3 9 1 19l2 6q8 20-4 36l-7 9q-9 10-12 22-4-3-4-8-1 13 8 21l9 8q15 14 17 34l-1 3q-5-9-11-16t-15-12l6 6q12 9 18 23 10 20 32 24 12 3 26-2 19-7 36-19l25-17q1-3 5-2l-32 30 1 1 14-13q28-25 62-39 11-5 21-5 3 0 6 2l-4 2q-34 15-62 40-20 18-44 35l-20 11-2 4c8-6 17-5 25-9q14-6 29-1 9 4 18-2 4-4 10-2-2 3-5 5-12 9-26 5h-2q-3-1-5 1-1 4 2 5l12 6 4 3q-3 2-8 1-9-2-17-9c-5-3-15-3-20 2q-2 3 2 4h10q10 0 16 7h-1q-12-2-24 0-9 0-15-5l-10-6q-4-1-1-5-14 3-30 4 3 5 7 5l11-1q8-2 14 4c-4 3-10-1-13 4q7 3 13 2 17 0 30 6 9 3 17 0 5-3 12 2c-10 1-17 7-26 5l-10-3h-5q-1 3 1 5 3 6 10 9 2 0 3 4-8 0-14-5l-6-8q-5-6-14-7-5 1-3 4 6 13 16 22 5 2 9 5-3 2-7 1-6-1-11-5-4-4-7 2-2 4-1 9 1 3-1 5-4-2-4-7v-11c2-11-2-15-10-22q-3-3-5 3-2 10 4 19 9 13-1 25c-2-5 1-9 0-13q-2-6-7-10l-4 4q-2-6-1-12l1-8q1-17-15-23h-4q-2 2 0 5l6 6q3 3 5 8-11-4-17-13l-4-9q-2-7-11-10v5q4 16 18 25l7 5q8 6 10 15c1 7-1 15 6 22q-8 0-9-5l-3-12q-1-7-7-13h-4q-2 1-1 3-1 12 6 21 5 7 1 14-2 0-2-2l-2-7q-5-9-9 0-3 5-9 9h-6q19-16 10-41-11 12-13 26-4-6-2-13l5-11q4-11-2-17h-1l-10 21q-2 8 2 15 3 9 0 16-1 3-4 4v-5l-3-15q-3-5-7-2-8 5-12 15 0 2-2 4-3-4-1-9 2-9 9-13 23-23 17-55 0-3-2-7-4 1-3 5l-1 7q2 13-6 22-4 7-3 13t-3 10c-2-10-4-20 4-28q4-9 0-18-2 1-3 3l-3 11q-2 7-6 12-7 9-4 20 2 8-3 15-1 3-5 2 4-7 2-16-1-3-3-4-3-1-5 3-4 5-5 12 0 3-3 5-3-11 2-20l6-8q2-1 1-3 0-2-3-1-6-1-7 6-1 10-10 16-2 3-5 3 0-3 2-4 4-5 6-11 1-4-2-6-2-1-5 1l-8 4q3-6 8-10 11-5 3-17c-6 12-21 15-23 30q-4-3-3-6 2-8 8-13 2-1 1-4 0-2-4-2-9 0-18 5l-4 2q1-4 4-7 8-5 17-5 8-1 15-6c2-3 5-6-1-8q2-5 7-6 9-2 19-8l5-4c-6-5-18-3-23 2l-5 6q-7 10-19 13-7 2-13 7-4 5-11 3c9-5 13-14 24-16q5 0 8-7-9-4-17 1l-10 8q-9 7-19 2c6-3 15-3 19-11-12 4-21-4-31-8q5-4 9-1 14 7 26 0 9-3 17-1 7 0 13-4l7-4q12-5 24-5 24-1 25-26v-10q16 10 28 22l-11-14q-12-14-16-30-4-25 11-46 12-16 8-36-2-9-9-17c-9-8-22-5-26 6q-5 9-12 10-4 0-4-4 2-9 10-12-5-6-17-6 1-3 4-4h8c9 4 16 0 24-4q-6-7-14-8-26-2-36 23-1 4 2 7 5 6 2 12-2 6-6 1l-4-12q-3 10-7 17 12 9 5 18-5-2-8-9-3 10-10 13-5 3-5-3 0-10 8-15 9-4 7-13-7 2-12 8-5 10-18 8 0-8 6-11c4-3 9-2 14-5q-10 0-15-6 4-6 11-5 7 0 8 8 12-8 17-21-4-1-5 2-6 5-14 2-4-1-1-5 4-5 12-5t14-6l11-9q-3-2-7-2-16 2-31 8-13 5-16 19-3 12-17 12-2-12 11-19l-15-2q-2-1-3 3-3 6-11 7 0-15 15-15 8 2 17-1 2-1 5-6c-10-1-15-13-26-10q-4 0-2-4 10-3 19 3t20 3l-12-12q-2-2-5 0-6 3-12 0-4-2-1-5 7-5 15-2-3-9-9-12 1 6-5 8-6 4-12 1-1-2 1-4 3-6 11-6-14-4-14-17c11-1 16 6 21 13v-10l2-3 3 2q5 5 3 13-1 3 1 6l6 8q9 17 28 15l14-2q4-1 4-3 1-3-3-4l-4-3q3-2 5-2 6-1 9 2c9 10 21 12 32 16q15 4 26 16 0-4-4-6-5-4-8-11-2-6-8-7l-14-2q-10 0-14-10 7-5 16 2 6 7 13 4c-1-10-12-17-22-14l-9 2-4 2c-13 3-25-2-36-6q-4-3-6-8 12-6 20 2 10 14 25 2c-11-3-19-13-32-15q-9-3-17 2-7 4-14 1-3-1-4-4c7 0 14 1 19-5q-4-12-15-7t-21-3q-3-3 1-5 10-7 21 0l3 1h1q-13-16-4-27 12 6 12 20-2 14 13 19l17 3q-1-13-6-23-4-3-9-4-6 0-10-7-3-4 2-4 6 0 11 4 3 4 8 6 2-13-10-16-7-2-10-8-1-4 3-4 8 0 11 7-5-13 4-22 12 8 1 26c10 10 9 24 11 37q3 16 18 17h6c-2-6-1-11-9-14q-9-4-7-16 10 0 14 11 3-15-7-25zm-10 329 1 8q1 4 4 3 11 0 19-9 3-3 1-7-4-2-7 2-4 3-9 6 0-7 7-12l12-9q6-4 7-12-4 0-5 2-10 7-21 11-10 4-9 17m169-49a87 87 0 0 1-62 19c18 7 54-6 68-23zm-117 4q2 14 15 22-6-6-10-13l-6-15h-1z"/>
+                <path class="path" d="M312 377q-10 7-22 11-21 5-26-16l-2-11q-3-17-16-29l-5-3q-14-13-2-28 10-13 18-27l6-15q1-5 7-5c35-3 66 26 68 60q3 39-26 63m-51-45q2 9 12 7 7 0 9 4 4 6 2 14v11q2 7 8 4 9-6 14-15 3-9 8-16 3-2 0-5-8-5-9-15-1-4-5-4-9 2-16-6l-1-1c-10-1-25 10-22 22m17-31-3 2q-3 1-1 3 1 4 4 1l3-3q6-5 13 0 3 3 6-1 1-4 5-9 5-5 1-10-4-4-12-3l1 3c2 8 1 8-6 10q-7 0-11 7m40 21c-4-3-5-9-10-10q-2 3-1 6l4 7q1 4 6 4 3-2 1-7m-30-36q1 3 2 2 3-2 1-5-2 0-3 3M669 208q47-1 73 36 28 41 4 83-27 47-81 56h-15q2-4 5-3 38-9 60-40 24-32 8-68-8-22-26-38a74 74 0 0 0-59-17l-3-1q16-7 34-8"/>
+                <path class="path" d="M626 216q-27 11-52 26-22 13-48 16-3 1-5-1l1-2q34-19 64-44 33-26 76-26 60 2 86 56 4 9 4 16l-7-11a85 85 0 0 0-72-41q-24 0-47 11M726 296c1 30-15 51-37 67a82 82 0 0 1-96 5q-26-16-48-36l-2-2q4-2 7 0 18 6 34 16 22 11 46 14 32 0 57-19 23-15 31-40 3-7 3-16v-9q6 9 5 20M508 331l-2-2q-4-4-3-8c2-2 10-2 12 1q5 5 11 3 5-1 6-6v-4h-4c-9 4-20-1-24-7-6-9-5-22 1-30q9-10 22-6 4 2 8 0h6q4 0 4 4v40c-1 18-20 26-37 15m15-50-4 1q-8 4-8 12 1 8 8 12 7 2 11-4c7-7 2-19-7-21"/>
+                <path class="path" d="M602 287v-29q0-6 6-5 7-1 6 5v14q3 2 4 1c18-7 33 5 31 25-2 19-19 26-34 17q-3 2-5 3-9 3-8-7zm27-5q-9-2-13 4-4 9 0 17 4 6 12 5 3 0 6-4c5-5 4-20-5-22M823 272q12-7 23 0 2-7 1-15 2-10 11-6l1 4v57q1 4-3 4c-3 0-7 2-9-3q-18 11-32-6c-6-12-3-28 8-35m23 14q-3-6-10-7-6 0-10 5-5 9 0 17 3 6 11 6 7-2 9-8 3-6 0-13M484 317h-5c-15 7-33-4-29-27 3-14 15-21 28-16l4 1q2-6 1-13t6-6q6 0 5 5v48q2 12-10 8m-17-10q9 4 14-4 3-6 1-13-3-7-11-7-7 0-9 8-3 9 5 16M575 309q4-1 6-3 7-6 14-1-3 8-11 12c-9 4-21 2-28-6-6-7-7-21-2-30q9-13 27-9 15 5 15 23 0 4-4 3h-21q-5-1-7 3 1 5 5 6zm-1-20h4q3 0 4-3 1-1-2-3-5-4-11-1-4 1-4 5 2 3 5 2zM878 300q9 13 20 3c3-5 6-2 9 0 4 2 0 5-1 6q-9 11-22 8t-18-15q-5-15 5-27 9-9 23-5 16 5 16 23 0 4-4 3l-23 1q-4-1-5 3m5-21q-4 3-5 7c4 2 16 2 19 0q-2-9-14-7M199 353q-15-36 6-68c7-10 16-20 18-34q5 8 4 14-2 15-9 26t-11 24q-5 18 4 34l5 12q-6-4-11-8c-1 3 2 6 0 10q-4-5-6-10M397 318q-15-1-19-14-4-17 7-27c7-5 18-6 25-1q11 8 9 20 0 4-4 3h-22q-2 0-4 2-1 3 2 4 7 7 15 1c5-4 6-4 12 0-1 7-11 13-21 12m-8-30 1 2h18q-2-7-8-7-6-2-11 5M670 306q13 6 15-7v-22q2-6 6-5 6-1 6 5v34q-1 11-10 6h-5c-15 6-27-2-27-17v-24q1-6 7-4 6-1 5 5v20q-1 5 3 9M774 295v17q1 5-5 4-5 2-6-4v-38q0-3 2-4c4 0 8-2 10 3q8-5 17-4 11 3 13 13 2 15 1 30-1 6-7 4-4 1-4-4l-1-23q0-10-8-10-9 0-11 9zM955 275q4 5 4 11v26q0 5-5 4-5 2-6-4v-22q0-11-9-11-9 1-11 11v21q0 6-6 5-5 1-5-5v-34c0-2-2-6 2-7q6-3 10 3 14-9 26 2M444 273q6-1 5 3c0 3 3 6-3 8q-10 1-10 12v16q2 7-6 6-6 0-5-6v-32q0-9 8-6 6 2 11-1M611 346q20 8 41 7c-15 15-64-4-78-29q18 12 37 22M134 179q5-1 10 2l7 1q3-1 5 1-2 4-6 3-5-1-8 2-9 5-17-3 3-5 9-6M379 228q9-3 15 2c-3 8-13 11-20 8q-3-2-1-5t6-5M88 200q-8 6-17 1-6-3-1-5 9-7 17-2 3 2 1 6M345 131q-4 1-5-3-3-10 6-17 9 9-1 20M180 114l1 2q1 4-4 4-10 2-14-9 8-4 17 3M249 65q1 7-3 9-4-1-6-6c-2-4-1-12 1-12q6 1 8 8zM329 159l-1 1q-3 5-7 3-2-4-1-7c0-4 5-10 7-9q5 4 2 10zM388 181q10-8 16 1-6 7-14 4-3-1-2-5"/>
+                <path class="path" d="M393 190q7-3 13 2-5 10-18 3 2-4 5-5M86 217l-4-5q9-4 15 3 2 4-2 5t-9-3M147 127q6 0 6 4-1 5-7 5-5 0-8-4 3-4 9-5M350 136l2-1q6-3 10 2 3 1 2 4 0 3-4 2-7 0-10-7M173 106q-7 0-9-8 11-1 9 8"/>
+            </svg>
+        </div>
+        <h1 class="brand-title">erdgebunden</h1>
+    </div>
+
+    <div class="user-panel" id="userPanel"></div>
+    
+    <div class="search-box">
+        <input type="text" id="searchLayer" placeholder="🔍 Ebene suchen ...">
+    </div>
+    
+    <div class="filter-chips" id="filterChips">
+        <span class="chip active" data-filter="all">🌍 Alle</span>
+        <span class="chip" data-filter="boden">🌱 Boden</span>
+        <span class="chip" data-filter="risiko">⚠️ Risiko</span>
+        <span class="chip" data-filter="wetter">⛅ Wetter</span>
+        <span class="chip" data-filter="bedeckung">🛰️ Land</span>
+    </div>
+
+    <div class="layer-list-container" id="layerList"></div>
+
+    <div class="reservations-list" id="myReservationsList">
+        <div style="font-weight:bold; margin-bottom:8px; font-size: 0.85rem; color:#80cbc4;"><i class="fas fa-draw-polygon"></i> Meine Geokorridore</div>
+        <div id="resListContent">- Keine eigenen Flächen -</div>
+    </div>
+
+    <div class="legend-panel" id="legendPanel">
+        <div class="legend-title"><i class="fas fa-palette"></i> Legende</div>
+        <div id="legendContent" class="legend-content">🖱️ Aktiviere eine Ebene oder klicke auf ℹ️ für Details.</div>
+    </div>
+    
+    <div class="footer-note"><i class="fas fa-database"></i> BGR · UBA · Copernicus · DWD</div>
+</div>
+
+<div id="map"></div>
+
+<script>
+    // Logo Animation
+    function animateLogo() {
+        const paths = document.querySelectorAll('.path');
+        paths.forEach((path, i) => {
+            const length = path.getTotalLength();
+            path.style.strokeDasharray = length; path.style.strokeDashoffset = length;
+            path.style.animationDelay = `${i * 80}ms`; void path.offsetWidth;
+            path.style.animation = 'draw 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        });
+        setTimeout(() => {
+            paths.forEach(path => { path.style.fill = '#4c9f70'; path.style.transition = 'fill 1.2s ease'; });
+        }, 3200);
+    }
+
+    const LAYER_REGISTRY = [
+        { id: "buek200", name: "BÜK200 Bodenübersichtskarte", category: "boden", group: "BGR - Boden", filterTags: ["boden"], wmsUrl: "https://services.bgr.de/wms/boden/buek200/?", layerName: "0", legendUrl: "https://services.bgr.de/wms/boden/buek200/?REQUEST=GetLegendGraphic&VERSION=1.3.0&LAYER=0&FORMAT=image/png" },
+        { id: "bodentyp_ka5", name: "Bodentypen (KA5)", category: "boden", group: "BGR - Boden", filterTags: ["boden"], wmsUrl: "https://services.bgr.de/wms/boden/bodentypen_ka5/?", layerName: "0", legendUrl: "https://services.bgr.de/wms/boden/bodentypen_ka5/?REQUEST=GetLegendGraphic&VERSION=1.3.0&LAYER=0&FORMAT=image/png" },
+        { id: "bodenguete_sqr", name: "Bodengüte (SQR)", category: "risiko", group: "BGR - Boden", filterTags: ["risiko","boden"], wmsUrl: "https://services.bgr.de/wms/boden/sqr1000/?", layerName: "0", legendUrl: "https://services.bgr.de/wms/boden/sqr1000/?REQUEST=GetLegendGraphic&VERSION=1.3.0&LAYER=0&FORMAT=image/png" },
+        { id: "versiegelung", name: "Bodenversiegelung (UBA)", category: "bedeckung", group: "UBA - Umwelt", filterTags: ["bedeckung","risiko"], wmsUrl: "https://gis.uba.de/arcgis/services/UBA/Bodenversiegelung/MapServer/WMSServer?", layerName: "0", legendUrl: "" },
+        { id: "clc_landcover", name: "CORINE Land Cover", category: "bedeckung", group: "Copernicus CLC", filterTags: ["bedeckung"], wmsUrl: "https://image.discomap.eea.europa.eu/arcgis/services/Corine/CLC2018_WM/MapServer/WMSServer?", layerName: "1", legendUrl: "https://land.copernicus.eu/pan-european/corine-land-cover/clc2018?/legend.png" },
+        { id: "niederschlag_aktuell", name: "Niederschlagsradar", category: "wetter", group: "DWD - Wetter", filterTags: ["wetter"], wmsUrl: "https://maps.dwd.de/geoserver/dwd/wms?", layerName: "dwd:Niederschlagsradar", legendUrl: "https://maps.dwd.de/geoserver/dwd/wms?REQUEST=GetLegendGraphic&LAYER=dwd:Niederschlagsradar&FORMAT=image/png" },
+        { id: "temperatur", name: "Temperatur (2m)", category: "wetter", group: "DWD - Wetter", filterTags: ["wetter"], wmsUrl: "https://maps.dwd.de/geoserver/dwd/wms?", layerName: "dwd:T_2M", legendUrl: "https://maps.dwd.de/geoserver/dwd/wms?REQUEST=GetLegendGraphic&LAYER=dwd:T_2M&FORMAT=image/png" }
+    ];
+
+    let map;
+    let activeWmsLayers = new Map(); 
+    let currentUser = null;           
+    let allReservations = [];          
+    let reservationMarkersLayer = L.layerGroup();
+    let reserveModeActive = false;
+    let polygonDrawer = null;
+
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+    
+    function openSidebar() { sidebar.classList.add("open"); }
+    function closeSidebar() { sidebar.classList.remove("open"); }
+    
+    mobileMenuBtn.addEventListener("click", openSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeSidebar);
+    
+    // Optional: Sidebar schließen wenn man auf die Karte klickt (nur mobil)
+    if (window.innerWidth <= 768) {
+        document.getElementById("map").addEventListener("click", () => {
+            if (sidebar.classList.contains("open")) closeSidebar();
+        });
+    }
+
+    function loadStorage() {
+        if (!localStorage.getItem("app_users")) localStorage.setItem("app_users", JSON.stringify([{ username: "admin", password: btoa("admin"), activeLayers: ["buek200"], reservedSpots: [] }]));
+        if (!localStorage.getItem("app_reservations")) localStorage.setItem("app_reservations", JSON.stringify([]));
+        allReservations = JSON.parse(localStorage.getItem("app_reservations"));
+        const storedUser = sessionStorage.getItem("currentUser");
+        if (storedUser) currentUser = { ...JSON.parse(localStorage.getItem("app_users")).find(u => u.username === storedUser), password: undefined };
+    }
+
+    function saveUsers(users) { localStorage.setItem("app_users", JSON.stringify(users)); }
+    function saveReservations() { localStorage.setItem("app_reservations", JSON.stringify(allReservations)); }
+    function getUserObj(username) { return JSON.parse(localStorage.getItem("app_users")).find(u => u.username === username); }
+
+    function updateUserInStorage(username, updatedFields) {
+        let users = JSON.parse(localStorage.getItem("app_users"));
+        const index = users.findIndex(u => u.username === username);
+        if (index !== -1) {
+            users[index] = { ...users[index], ...updatedFields }; saveUsers(users);
+            if (currentUser && currentUser.username === username) currentUser = { ...currentUser, ...updatedFields };
+        }
+    }
+
+    function saveUserActiveLayers() { if (currentUser) updateUserInStorage(currentUser.username, { activeLayers: currentUser.activeLayers }); }
+
+    function addReservation(username, polygonPoints, name) {
+        const newId = Date.now() + Math.random();
+        const newRes = { id: newId, username, points: polygonPoints, name: name || "Geokorridor", timestamp: new Date().toISOString() };
+        allReservations.push(newRes); saveReservations(); refreshAllReservationMarkers();
+        if (currentUser && currentUser.username === username) {
+            updateUserInStorage(username, { reservedSpots: [...(getUserObj(username)?.reservedSpots || []), newId] });
+            renderMyReservations();
+        }
+    }
+
+    function removeReservation(resId, username) {
+        allReservations = allReservations.filter(r => r.id != resId); saveReservations();
+        if (currentUser && currentUser.username === username) {
+            updateUserInStorage(username, { reservedSpots: getUserObj(username).reservedSpots.filter(id => id != resId) });
+            renderMyReservations();
+        }
+        refreshAllReservationMarkers(); return true;
+    }
+
+    function refreshAllReservationMarkers() {
+        reservationMarkersLayer.clearLayers();
+        allReservations.forEach(res => {
+            const poly = L.polygon(res.points, { color: '#4c9f70', weight: 3, fillOpacity: 0.35 });
+            poly.bindPopup(`
+                <div style="font-size:0.9rem;">
+                    <b>🗺️ ${res.name}</b><br><i>Korridor von ${res.username}</i><br>
+                    ${(currentUser && currentUser.username === res.username) ? `<button class="btn-icon danger" style="margin-top:8px; width:100%;" onclick="deleteReservationFromMap('${res.id}')">🗑️ Löschen</button>` : '<span style="font-size:11px; color:#aaa;">🔒 Geschützt</span>'}
+                </div>`);
+            reservationMarkersLayer.addLayer(poly);
+        });
+    }
+
+    window.deleteReservationFromMap = (resId) => { if (currentUser) { removeReservation(resId, currentUser.username); map.closePopup(); } };
+
+    function renderMyReservations() {
+        const container = document.getElementById("resListContent");
+        if (!currentUser) return container.innerHTML = "- Bitte anmelden -";
+        const myRes = allReservations.filter(r => r.username === currentUser.username);
+        if (myRes.length === 0) return container.innerHTML = "- Keine Korridore -";
+        container.innerHTML = myRes.map(r => `<div class="res-item"><span>🗺️ ${r.name}</span><button class="btn-icon danger" style="padding:4px 8px;" onclick="deleteReservationFromMap('${r.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
+    }
+
+    function toggleLayer(layerId, isActive) {
+        const layerDef = LAYER_REGISTRY.find(l => l.id === layerId);
+        if (!layerDef) return;
+        if (isActive && !activeWmsLayers.has(layerId)) {
+            const wms = L.tileLayer.wms(layerDef.wmsUrl, { 
+                layers: layerDef.layerName, 
+                format: 'image/png', 
+                transparent: true, 
+                opacity: 0.7, 
+                attribution: layerDef.group 
+            });
+            wms.addTo(map); activeWmsLayers.set(layerId, wms);
+            showLegend(layerId);
+            if (currentUser && !currentUser.activeLayers.includes(layerId)) { currentUser.activeLayers.push(layerId); saveUserActiveLayers(); }
+        } else if (!isActive && activeWmsLayers.has(layerId)) {
+            map.removeLayer(activeWmsLayers.get(layerId)); activeWmsLayers.delete(layerId);
+            if (currentUser) { currentUser.activeLayers = currentUser.activeLayers.filter(id => id !== layerId); saveUserActiveLayers(); }
+        }
+    }
+
+    function showLegend(layerId) {
+        const layer = LAYER_REGISTRY.find(l => l.id === layerId);
+        if (layer && layer.legendUrl) {
+            document.getElementById("legendContent").innerHTML = `<div><strong>${layer.name}</strong><br><img class="legend-img" src="${layer.legendUrl}" onerror="this.style.display='none'; this.parentElement.innerHTML+='<br>Keine Bild-Legende verfügbar.';"></div>`;
+            if(window.innerWidth <= 768) document.getElementById('sidebar').scrollTo({ top: document.getElementById('sidebar').scrollHeight, behavior: 'smooth' });
+        }
+    }
+
+    let currentFilter = "all", currentSearch = "";
+    function renderLayerList() {
+        const container = document.getElementById("layerList");
+        let filtered = LAYER_REGISTRY.filter(l => (currentFilter === "all" || l.filterTags.includes(currentFilter)) && (currentSearch === "" || l.name.toLowerCase().includes(currentSearch)));
+        const groups = new Map(); filtered.forEach(l => { if(!groups.has(l.group)) groups.set(l.group,[]); groups.get(l.group).push(l); });
+        
+        let html = '';
+        groups.forEach((layers, groupName) => {
+            html += `<div class="layer-category">${groupName}</div>`;
+            layers.forEach(layer => {
+                html += `<div class="layer-item" data-id="${layer.id}"><input type="checkbox" id="chk_${layer.id}" ${activeWmsLayers.has(layer.id)?'checked':''}><label for="chk_${layer.id}" class="layer-name">${layer.name}</label><i class="fas fa-info-circle info-icon" data-layerid="${layer.id}"></i></div>`;
+            });
+        });
+        container.innerHTML = html || '<div style="padding:20px;text-align:center;">🔍 Nichts gefunden</div>';
+        
+        document.querySelectorAll('.layer-item input').forEach(cb => cb.addEventListener('change', (e) => toggleLayer(cb.closest('.layer-item').dataset.id, cb.checked)));
+        document.querySelectorAll('.info-icon').forEach(icon => icon.addEventListener('click', (e) => { e.stopPropagation(); showLegend(icon.dataset.layerid); }));
+    }
+
+    // Neue Funktion für Login/Register mit Tabs
+    function renderUserPanel() {
+        const panel = document.getElementById("userPanel");
+        
+        if (!currentUser) {
+            panel.innerHTML = `
+                <div class="user-status"><span class="user-greeting"><i class="fas fa-user"></i> Gastzugang</span></div>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-auth-tab="login">🔑 Anmelden</button>
+                    <button class="auth-tab" data-auth-tab="register">📝 Registrieren</button>
+                </div>
+                <div class="auth-form-container">
+                    <div id="loginFormContainer" class="login-form" style="display: flex;">
+                        <input type="text" id="loginUser" placeholder="Benutzername">
+                        <input type="password" id="loginPass" placeholder="Passwort">
+                        <button class="btn-icon" id="doLoginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
+                    </div>
+                    <div id="registerFormContainer" class="register-form" style="display: none;">
+                        <input type="text" id="regUser" placeholder="Benutzername">
+                        <input type="password" id="regPass" placeholder="Passwort">
+                        <button class="btn-icon" id="doRegBtn"><i class="fas fa-user-plus"></i> Registrieren</button>
+                    </div>
+                </div>
+            `;
+            
+            // Tab Umschaltung
+            const loginTab = panel.querySelector('[data-auth-tab="login"]');
+            const registerTab = panel.querySelector('[data-auth-tab="register"]');
+            const loginDiv = document.getElementById("loginFormContainer");
+            const registerDiv = document.getElementById("registerFormContainer");
+            
+            const switchTab = (tab) => {
+                if (tab === 'login') {
+                    loginTab.classList.add('active');
+                    registerTab.classList.remove('active');
+                    loginDiv.style.display = 'flex';
+                    registerDiv.style.display = 'none';
+                } else {
+                    registerTab.classList.add('active');
+                    loginTab.classList.remove('active');
+                    loginDiv.style.display = 'none';
+                    registerDiv.style.display = 'flex';
+                }
+            };
+            
+            loginTab.addEventListener('click', () => switchTab('login'));
+            registerTab.addEventListener('click', () => switchTab('register'));
+            
+            document.getElementById("doLoginBtn")?.addEventListener("click", () => {
+                const u = document.getElementById("loginUser").value, p = document.getElementById("loginPass").value;
+                const users = JSON.parse(localStorage.getItem("app_users"));
+                const user = users.find(uu => uu.username === u && atob(uu.password) === p);
+                if (user) { 
+                    currentUser = { username: u, activeLayers: user.activeLayers || [], reservedSpots: user.reservedSpots || [] }; 
+                    sessionStorage.setItem("currentUser", u);
+                    loadUserLayersFromProfile(); 
+                    refreshAllReservationMarkers(); 
+                    renderUserPanel(); 
+                    renderLayerList(); 
+                    renderMyReservations(); 
+                } else alert("Login fehlgeschlagen");
+            });
+            
+            document.getElementById("doRegBtn")?.addEventListener("click", () => {
+                const u = document.getElementById("regUser").value, p = document.getElementById("regPass").value; 
+                if (!u || !p) return;
+                let users = JSON.parse(localStorage.getItem("app_users")); 
+                if (users.find(uu => uu.username === u)) return alert("Benutzername existiert bereits");
+                users.push({ username: u, password: btoa(p), activeLayers: [], reservedSpots: [] }); 
+                saveUsers(users); 
+                alert("Registrierung erfolgreich! Bitte anmelden.");
+                // Nach Registrierung automatisch zum Login-Tab wechseln
+                switchTab('login');
+                document.getElementById("loginUser").value = u;
+                document.getElementById("loginPass").value = p;
+            });
+        } else {
+            panel.innerHTML = `
+                <div class="user-status"><span class="user-greeting"><i class="fas fa-user-check"></i> ${currentUser.username}</span><button class="btn-icon danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button></div>
+                <div class="reserve-mode"><span><i class="fas fa-draw-polygon"></i> Korridor ziehen</span><button class="btn-icon" id="toggleReserveBtn" style="${reserveModeActive ? 'background:#4c9f70;' : ''}">${reserveModeActive ? 'AKTIV' : 'Zeichnen'}</button></div>`;
+            
+            document.getElementById("logoutBtn")?.addEventListener("click", () => { 
+                currentUser = null; 
+                sessionStorage.removeItem("currentUser"); 
+                activeWmsLayers.forEach(val => map.removeLayer(val)); 
+                activeWmsLayers.clear(); 
+                reservationMarkersLayer.clearLayers(); 
+                renderUserPanel(); 
+                renderLayerList(); 
+                renderMyReservations(); 
+            });
+            document.getElementById("toggleReserveBtn")?.addEventListener("click", toggleReserveMode);
+        }
+    }
+
+    function toggleReserveMode() {
+        if (!currentUser) { alert("Bitte zuerst anmelden, um Korridore zu zeichnen."); return; }
+        reserveModeActive = !reserveModeActive;
+        const btn = document.getElementById("toggleReserveBtn");
+        
+        if (reserveModeActive) {
+            if (btn) btn.style.background = '#4c9f70';
+            polygonDrawer = new L.Draw.Polygon(map, { shapeOptions: { color: '#4c9f70', weight: 3, fillOpacity: 0.4 }});
+            polygonDrawer.enable();
+            if(window.innerWidth <= 768) { closeSidebar(); alert("Zeichne nun deinen Geokorridor auf der Karte!"); }
+        } else {
+            if (btn) btn.style.background = '';
+            if (polygonDrawer) polygonDrawer.disable();
+        }
+        // Button Text aktualisieren falls vorhanden
+        if (btn) btn.innerText = reserveModeActive ? 'ABBRUCH' : 'Zeichnen';
+    }
+
+    function loadUserLayersFromProfile() {
+        activeWmsLayers.forEach(val => map.removeLayer(val)); 
+        activeWmsLayers.clear();
+        if (currentUser && currentUser.activeLayers) currentUser.activeLayers.forEach(id => toggleLayer(id, true));
+        renderLayerList();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        loadStorage(); 
+        animateLogo();
+        
+        map = L.map('map', { zoomControl: false }).setView([51.1657, 10.4515], 6);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM &copy; CartoDB', subdomains: 'abcd' }).addTo(map);
+        
+        reservationMarkersLayer.addTo(map);
+        
+        map.on(L.Draw.Event.CREATED, function (e) {
+            if (!currentUser) { alert("Bitte anmelden um zu speichern!"); return; }
+            const points = e.layer.getLatLngs()[0];
+            const name = prompt("Bezeichnung des Geokorridors:", "Meine Landfläche");
+            if (name) addReservation(currentUser.username, points, name);
+            toggleReserveMode(); // Deaktivieren
+            renderUserPanel();
+            if(window.innerWidth <= 768) openSidebar(); // Menü auf Handy wieder öffnen
+        });
+
+        renderUserPanel(); 
+        renderLayerList(); 
+        refreshAllReservationMarkers();
+        if (currentUser) { loadUserLayersFromProfile(); renderMyReservations(); }
+        
+        document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { 
+            document.querySelectorAll(".chip").forEach(ch => ch.classList.remove("active")); 
+            c.classList.add("active"); 
+            currentFilter = c.dataset.filter; 
+            renderLayerList(); 
+        }));
+        document.getElementById("searchLayer").addEventListener("input", (e) => { 
+            currentSearch = e.target.value.toLowerCase(); 
+            renderLayerList(); 
+        });
+        
+        window.addEventListener('resize', () => map.invalidateSize());
+    });
+</script>
+</body>
+</html>
