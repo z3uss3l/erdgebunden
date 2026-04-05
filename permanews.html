@@ -58,11 +58,11 @@
     const FEEDS = [
         { id: "permakultur", title: "🌱 Permakultur & Ökolandbau", url: "https://www.topagrar.com/Oekolandbau-10121277.xml", cacheKey: "feed_permakultur", lastUpdateKey: "last_permakultur" },
         { id: "nachhaltigkeit", title: "🌍 Nachhaltigkeit", url: "https://utopia.de/rss/", cacheKey: "feed_nachhaltigkeit", lastUpdateKey: "last_nachhaltigkeit" },
-        { id: "slowfood", title: "🍽️ Slow Food", url: "https://www.slowfood.de/aktuelles/aktuelles/RSS", cacheKey: "feed_slowfood", lastUpdateKey: "last_slowfood" },
+        { id: "slowfood", title: "🍽️ Slow Food", url: "https://www.slowfood.de/rss.xml", cacheKey: "feed_slowfood", lastUpdateKey: "last_slowfood" },
         { id: "biodiversitaet", title: "🌿 Biodiversität", url: "https://www.nabu.de/rssfeed.php", cacheKey: "feed_biodiversitaet", lastUpdateKey: "last_biodiversitaet" },
         { id: "biokonsum", title: "🥦 Bio-Konsum", url: "https://www.oekotest.de/rss.xml", cacheKey: "feed_biokonsum", lastUpdateKey: "last_biokonsum" },
         { id: "gemeinwohl", title: "🏛️ Gemeinwohl & Umweltschutz", url: "https://www.bund.net/rss/", cacheKey: "feed_gemeinwohl", lastUpdateKey: "last_gemeinwohl", fallbackUrl: "https://www.greenpeace.de/rss" },
-        { id: "umweltschutz", title: "🌍 Umweltschutz", url: "https://www.greenpeace.de/rss", cacheKey: "feed_umweltschutz", lastUpdateKey: "last_umweltschutz" },
+        { id: "umweltschutz", title: "🌍 Umweltschutz", url: "https://www.zeit.de/thema/klimawandel/rss", cacheKey: "feed_umweltschutz", lastUpdateKey: "last_umweltschutz" },
         { id: "bayernfranken", title: "🏔️ Franken Regional", url: "https://www.mainpost.de/rss", cacheKey: "feed_bayernfranken", lastUpdateKey: "last_bayernfranken" }
     ];
 
@@ -85,7 +85,7 @@
 
     function resetHiddenLinks() {
         localStorage.removeItem("hiddenArticleLinks");
-        for (const feed of FEEDS) updateSingleFeed(feed.id, false);
+        FEEDS.forEach(feed => updateSingleFeed(feed.id, false));
     }
 
     async function fetchFeedViaProxy(feedUrl, timeoutMs = 10000) {
@@ -145,10 +145,7 @@
 
         if (shownArticles.length === 0) {
             container.innerHTML = '<div class="empty-state">📭 Keine sichtbaren Artikel.</div>';
-            if (statusSpan) {
-                statusSpan.innerText = `🚫 0 sichtbar (${totalPool} total, ${hiddenCount} ausgeblendet)`;
-                statusSpan.className = "feed-status status-stale";
-            }
+            if (statusSpan) statusSpan.className = "feed-status status-stale";
             return;
         }
 
